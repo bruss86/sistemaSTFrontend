@@ -1,5 +1,5 @@
 //const API_URL = "http://localhost:3000";
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = "https://sistemast.onrender.com";
 
 export async function getClientes() {
   const token = localStorage.getItem("token");
@@ -8,6 +8,11 @@ export async function getClientes() {
       Authorization: `Bearer ${token}`,
     },
   });
+   if (res.status === 401) {
+    localStorage.removeItem("token");
+    window.location.reload();
+    return;
+  }
   return res.json();
 }
 
@@ -21,6 +26,11 @@ export async function createCliente(data) {
     },
     body: JSON.stringify(data),
   });
+   if (res.status === 401) {
+    localStorage.removeItem("token");
+    window.location.reload();
+    return;
+  }
   return res.json();
 }
    
@@ -35,9 +45,13 @@ export async function updateCliente(id, data) {
     },
     body: JSON.stringify(data),
   });
+   if (res.status === 401) {
+    localStorage.removeItem("token");
+    window.location.reload();
+    return;
+  }
   return res.json();
 }
-
 
 
 export async function getInstrumentos() {
@@ -48,8 +62,11 @@ export async function getInstrumentos() {
     },
   });
   const data = await res.json();
-  console.log("RESPUESTA RAW:", data);
-  console.log("ES ARRAY?", Array.isArray(data));
+   if (res.status === 401) {
+    localStorage.removeItem("token");
+    window.location.reload();
+    return;
+  }
   return data;
 }
 
@@ -63,7 +80,11 @@ export async function createInstrumento(data) {
     },
     body: JSON.stringify(data),
   });
-
+   if (res.status === 401) {
+    localStorage.removeItem("token");
+    window.location.reload();
+    return;
+  }
   return res.json();
 }
 
@@ -77,6 +98,11 @@ export async function updateInstrumento(id, data) {
     },
     body: JSON.stringify(data),
   });
+   if (res.status === 401) {
+    localStorage.removeItem("token");
+    window.location.reload();
+    return;
+  }
   return res.json();
 }
     
@@ -88,5 +114,26 @@ export const getInstrumentosByCliente = async (id) => {
       Authorization: `Bearer ${token}`,
     },
   });
+   if (res.status === 401) {
+    localStorage.removeItem("token");
+    window.location.reload();
+    return;
+  }
   return res.json();
 };
+
+export async function obtenerTareas() {
+  const token = localStorage.getItem("token");
+  const res = await fetch(`${API_URL}/tareas`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+    if (res.status === 401) {
+    localStorage.removeItem("token");
+    window.location.reload();
+    return;
+  }
+  return res.json();
+}
+

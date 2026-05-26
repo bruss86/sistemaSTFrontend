@@ -1,128 +1,74 @@
 import { useEffect, useState, useMemo } from "react";
-import { getInstrumentos, getClientes, updateInstrumento } from "../api/api";
 
-export default function InstrumentoList({ refresh }) {
-  const [instrumentos, setInstrumentos] = useState([]);
-  const [clientes, setClientes] = useState([]);
+export default function InstrumentoList({ instrumentos = [], onNew, onEdit }) {
   const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const [editCell, setEditCell] = useState(null);
-  const [editValue, setEditValue] = useState("");
+  const itemsPerPage = 10;
 
-  // 🔄 CARGA DE DATOS
-  useEffect(() => {
-    const cargar = async () => {
-      try {
-        const [ins, cli] = await Promise.all([
-          getInstrumentos(),
-          getClientes(),
-        ]);
-
-        setInstrumentos(ins || []);
-        setClientes(cli || []);
-        console.log("INSTRUMENTOS:", instrumentos);
-      } catch (err) {
-        console.error("Error cargando datos:", err);
-      }
-    };
-
-    cargar();
-  }, [refresh]);
-
-  // 🔎 FILTRO OPTIMIZADO (memoizado)
   const filtrados = useMemo(() => {
-    const t = search.toLowerCase();
+    const t = search.toLowerCase().trim();
+    if (!t) return instrumentos;
 
-    return instrumentos.filter((i) =>
-      i.numeroSerie?.toLowerCase().includes(t) ||
-      i.numeroPartida?.toLowerCase().includes(t) ||
-      i.descripcion?.toLowerCase().includes(t) ||
-      i.cliente?.nombre?.toLowerCase().includes(t)
-    );
+    return instrumentos.filter((i) => {
+      const clienteNombre = i.cliente?.nombre?.toLowerCase() || "";
+
+      return (
+        i.numeroSerie?.toLowerCase().includes(t) ||
+        i.numeroPartida?.toLowerCase().includes(t) ||
+        i.descripcion?.toLowerCase().includes(t) ||
+        clienteNombre.includes(t)
+      );
+    });
   }, [search, instrumentos]);
 
-  // ✏️ ACTIVAR EDICIÓN
-  const handleEdit = (id, field, value) => {
-    setEditCell({ id, field });
-    setEditValue(value || "");
-  };
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
 
-  // 💾 GUARDAR CAMBIOS
-  const saveEdit = async () => {
-  if (!editCell) return;
+  const totalPages = useMemo(
+    () => Math.max(1, Math.ceil(filtrados.length / itemsPerPage)),
+    [filtrados.length]
+  );
 
-  const { id, field } = editCell;
+  const currentItems = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filtrados.slice(start, start + itemsPerPage);
+  }, [filtrados, currentPage]);
 
-  try {
-    let updatedValue = editValue;
-
-    if (field === "cliente") {
-      updatedValue = editValue || null;
-    }
-
-    if (field === "fechaUltimoMantenimiento") {
-      updatedValue = editValue
-        ? new Date(editValue + "T12:00:00")
-        : null;
-    }
-
-    await updateInstrumento(id, {
-      [field]: updatedValue,
-    });
-
-    setInstrumentos((prev) =>
-      prev.map((i) =>
-        i._id === id
-          ? {
-              ...i,
-              [field]:
-                field === "cliente"
-                  ? clientes.find((c) => c._id === editValue) || null
-                  : updatedValue,
-            }
-          : i
-      )
-    );
-
-  } catch (err) {
-    console.error("Error actualizando instrumento:", err);
-  }
-
-  setEditCell(null);
-};
-
-  //Funcion para calcular el estado
-  const getEstadoMantenimiento = (fecha) => {
+  const getEstado = (fecha) => {
     if (!fecha) return "sin";
 
     const hoy = new Date();
-    const fechaMant = new Date(fecha);
+    const base = new Date(fecha);
+    const venc = new Date(base);
+    venc.setFullYear(venc.getFullYear() + 1);
 
-    // 🔧 vencimiento a 12 meses
-    const vencimiento = new Date(fechaMant);
-    vencimiento.setFullYear(vencimiento.getFullYear() + 1);
+    const diff = Math.ceil((venc - hoy) / (1000 * 60 * 60 * 24));
 
-    const diffDias = Math.ceil(
-      (vencimiento - hoy) / (1000 * 60 * 60 * 24)
-    );
-
-    if (diffDias < 0) return "vencido";       // 🔴
-    if (diffDias <= 30) return "proximo";     // 🟡
-    return "ok";                               // 🟢
+    if (diff < 0) return "vencido";
+    if (diff <= 30) return "proximo";
+    return "ok";
   };
 
   return (
     <div className="card p-3 shadow-sm">
-      <h4>🧰 Instrumentos</h4>
 
-      {/* 🔎 SEARCH */}
-      <input
-        className="form-control mb-3"
-        placeholder="🔎 Buscar instrumento o cliente..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-      />
+      {/* SEARCH + NEW */}
+      <div className="d-flex gap-2 mb-3">
+        <input
+          className="form-control"
+          placeholder="🔎 Buscar instrumento..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
 
+        <button className="btn btn-primary" onClick={onNew}>
+          ➕ Nuevo
+        </button>
+      </div>
+
+      {/* TABLE */}
       <div className="table-responsive">
         <table className="table table-striped table-hover align-middle">
           <thead className="table-dark">
@@ -132,150 +78,64 @@ export default function InstrumentoList({ refresh }) {
               <th>Descripción</th>
               <th>Cliente</th>
               <th>Mantenimiento</th>
+              <th>Acciones</th>
             </tr>
           </thead>
 
           <tbody>
-            {filtrados.map((i) => (
-              <tr key={i._id}>
-                
-                {/* 🔹 SERIE */}
-                <td
-                  style={{ cursor: "pointer" }}
-                  onClick={() => handleEdit(i._id, "numeroSerie", i.numeroSerie)}
-                >
-                  {editCell?.id === i._id && editCell?.field === "numeroSerie" ? (
-                    <input
-                      className="form-control form-control-sm"
-                      autoFocus
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
-                      onBlur={saveEdit}
-                      onKeyDown={(e) => e.key === "Enter" && saveEdit()}
-                    />
-                  ) : (
-                    i.numeroSerie
-                  )}
-                </td>
+            {currentItems.map((i) => {
+              const estado = getEstado(i.fechaUltimoMantenimiento);
 
-                {/* 🔹 PARTIDA */}
-                <td
-                  style={{ cursor: "pointer" }}
-                  onClick={() => handleEdit(i._id, "numeroPartida", i.numeroPartida)}
-                >
-                  {editCell?.id === i._id && editCell?.field === "numeroPartida" ? (
-                    <input
-                      className="form-control form-control-sm"
-                      autoFocus
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
-                      onBlur={saveEdit}
-                      onKeyDown={(e) => e.key === "Enter" && saveEdit()}
-                    />
-                  ) : (
-                    i.numeroPartida
-                  )}
-                </td>
+              const color =
+                estado === "vencido"
+                  ? "text-danger fw-bold"
+                  : estado === "proximo"
+                  ? "text-warning fw-bold"
+                  : "text-success";
 
-                {/* 🔹 DESCRIPCIÓN */}
-                <td
-                  style={{ cursor: "pointer" }}
-                  onClick={() => handleEdit(i._id, "descripcion", i.descripcion)}
-                >
-                  {editCell?.id === i._id && editCell?.field === "descripcion" ? (
-                    <input
-                      className="form-control form-control-sm"
-                      autoFocus
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
-                      onBlur={saveEdit}
-                      onKeyDown={(e) => e.key === "Enter" && saveEdit()}
-                    />
-                  ) : (
-                    i.descripcion
-                  )}
-                </td>
+              return (
+                <tr key={i._id}>
+                  <td>{i.numeroSerie}</td>
+                  <td>{i.numeroPartida || "-"}</td>
+                  <td>{i.descripcion}</td>
+                  <td>{i.cliente?.nombre || "Sin cliente"}</td>
 
-                {/* 🔹 CLIENTE */}
-                <td
-                  style={{ cursor: "pointer" }}
-                  onClick={() => handleEdit(i._id, "cliente", i.cliente?._id)}
-                >
-                  {editCell?.id === i._id && editCell?.field === "cliente" ? (
-                    <select
-                      autoFocus
-                      className="form-select form-select-sm"
-                      value={editValue || ""}
-                      onChange={(e) => setEditValue(e.target.value)}
-                      onBlur={saveEdit}
+                  <td className={color}>
+                    {i.fechaUltimoMantenimiento
+                      ? new Date(i.fechaUltimoMantenimiento).toLocaleDateString()
+                      : "—"}
+                  </td>
+
+                  <td>
+                    <button
+                      className="btn btn-sm btn-outline-primary"
+                      onClick={() => onEdit(i)}
                     >
-                      <option value="">Sin cliente</option>
-                      {clientes.map((c) => (
-                        <option key={c._id} value={c._id}>
-                          {c.nombre}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    i.cliente?.nombre || "Sin cliente"
-                  )}
-                </td>
-
-                {/* 🔹 MANTENIMIENTO */}
-                <td
-                  style={{ cursor: "pointer" }}
-                  onClick={() =>
-                    handleEdit(
-                      i._id,
-                      "fechaUltimoMantenimiento",
-                      i.fechaUltimoMantenimiento
-                        ? new Date(i.fechaUltimoMantenimiento).toISOString().split("T")[0]
-                        : ""
-                    )
-                  }
-                >
-                  {(() => {
-                    const estado = getEstadoMantenimiento(i.fechaUltimoMantenimiento);
-
-                    const clases =
-                      estado === "vencido"
-                        ? "text-danger fw-bold"
-                        : estado === "proximo"
-                        ? "text-warning fw-bold"
-                        : estado === "ok"
-                        ? "text-success"
-                        : "text-muted";
-
-                    return editCell?.id === i._id &&
-                      editCell?.field === "fechaUltimoMantenimiento" ? (
-                      <input
-                        type="date"
-                        className="form-control form-control-sm"
-                        autoFocus
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        onBlur={saveEdit}
-                        onKeyDown={(e) => e.key === "Enter" && saveEdit()}
-                      />
-                    ) : i.fechaUltimoMantenimiento ? (
-                      <span className={clases}>
-                        {new Date(i.fechaUltimoMantenimiento).toLocaleDateString()}
-                      </span>
-                    ) : (
-                      <span className="text-muted">—</span>
-                    );
-                  })()}
-                </td>
-              </tr>
-            ))}
+                      ✏️
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
+      </div>
 
-        {filtrados.length === 0 && (
-          <div className="text-center text-muted mt-3">
-            No se encontraron instrumentos
-          </div>
-        )}
+      {/* PAGINATION */}
+      <div className="d-flex justify-content-center mt-3 gap-2">
+        {Array.from({ length: totalPages }).map((_, i) => (
+          <button
+            key={i}
+            className={`btn btn-sm ${
+              currentPage === i + 1
+                ? "btn-primary"
+                : "btn-outline-primary"
+            }`}
+            onClick={() => setCurrentPage(i + 1)}
+          >
+            {i + 1}
+          </button>
+        ))}
       </div>
     </div>
   );
