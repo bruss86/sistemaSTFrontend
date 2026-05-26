@@ -20,8 +20,9 @@ import RepuestosList from "./components/RepuestosList";
 import TareasList from "./components/TareasList";
 import TareaForm from "./components/TareaForm";
 
+const API_URL = import.meta.env.VITE_API_URL;
 //const API_URL = "http://localhost:3000";
-const API_URL = "https://sistemast.onrender.com";
+//const API_URL = "https://sistemast.onrender.com";
 
 function App() {
   const [auth, setAuth] = useState(() =>

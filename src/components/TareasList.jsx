@@ -268,6 +268,13 @@ export default function TareasList({
                 Instrumento
               </th>
 
+              <th
+                className="text-center"
+                style={{ width: 120 }}
+              >
+                Acciones
+              </th>
+
               <th style={{ minWidth: 260 }}>
                 Tarea
               </th>
@@ -280,12 +287,6 @@ export default function TareasList({
                 Responsable
               </th>
 
-              <th
-                className="text-center"
-                style={{ width: 120 }}
-              >
-                Acciones
-              </th>
             </tr>
           </thead>
 
@@ -332,33 +333,7 @@ export default function TareasList({
                   <td>
                     {getInstrumento(t)}
                   </td>
-
-                  <td>{t.tarea}</td>
-
-                  <td>
-                    <span
-                      className={`badge rounded-pill ${prioridadBadge(
-                        t.prioridad
-                      )}`}
-                    >
-                      {t.prioridad}
-                    </span>
-                  </td>
-
-                  <td>
-                    <span
-                      className={`badge rounded-pill ${estadoBadge(
-                        t.estado
-                      )}`}
-                    >
-                      {t.estado}
-                    </span>
-                  </td>
-
-                  <td>
-                    {t.responsable || "—"}
-                  </td>
-
+                  
                   <td className="text-center">
 
                     <div className="d-flex justify-content-center gap-1">
@@ -386,6 +361,34 @@ export default function TareasList({
                     </div>
 
                   </td>
+
+                  <td>{t.tarea}</td>
+
+                  <td>
+                    <span
+                      className={`badge rounded-pill ${prioridadBadge(
+                        t.prioridad
+                      )}`}
+                    >
+                      {t.prioridad}
+                    </span>
+                  </td>
+
+                  <td>
+                    <span
+                      className={`badge rounded-pill ${estadoBadge(
+                        t.estado
+                      )}`}
+                    >
+                      {t.estado}
+                    </span>
+                  </td>
+
+                  <td>
+                    {t.responsable || "—"}
+                  </td>
+
+                  
 
                 </tr>
               );

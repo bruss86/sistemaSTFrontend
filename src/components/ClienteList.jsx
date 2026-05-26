@@ -20,7 +20,12 @@ export default function ClienteList({ refresh }) {
   const [showForm, setShowForm] = useState(false);
   const [clienteEditando, setClienteEditando] = useState(null);
 
+  // 👉 paginación
+  const [pagina, setPagina] = useState(1);
+  const porPagina = 8;
+
   useEffect(() => {
+    setPagina(1);
     const cargar = async () => {
       try {
         const [cli, ins] = await Promise.all([
@@ -36,7 +41,7 @@ export default function ClienteList({ refresh }) {
     };
 
     cargar();
-  }, [refresh]);
+  }, [refresh],[search]);
 
   const filtrados = useMemo(() => {
     const t = search.toLowerCase().trim();
@@ -57,6 +62,13 @@ export default function ClienteList({ refresh }) {
 
     return resultado;
   }, [clientes, search, ordenAsc]);
+
+  const totalPaginas = Math.ceil(filtrados.length / porPagina);
+
+  const clientesPaginados = useMemo(() => {
+    const inicio = (pagina - 1) * porPagina;
+    return filtrados.slice(inicio, inicio + porPagina);
+  }, [filtrados, pagina]);
 
   const getCantidad = (id) =>
     instrumentos.filter((i) => i?.cliente?._id === id).length;
@@ -129,7 +141,7 @@ export default function ClienteList({ refresh }) {
           </thead>
 
           <tbody>
-            {filtrados.map((c) => {
+            {clientesPaginados.map((c) => {
               const estado = getEstado(c._id);
               const cant = getCantidad(c._id);
               const vencidos = getVencidos(c._id);
@@ -184,6 +196,29 @@ export default function ClienteList({ refresh }) {
             })}
           </tbody>
         </table>
+        <div className="d-flex justify-content-center align-items-center gap-2 mt-3">
+
+          <button
+            className="btn btn-outline-secondary btn-sm"
+            disabled={pagina === 1}
+            onClick={() => setPagina((p) => p - 1)}
+          >
+            ←
+          </button>
+
+          <span>
+            Página {pagina} de {totalPaginas || 1}
+          </span>
+
+          <button
+            className="btn btn-outline-secondary btn-sm"
+            disabled={pagina === totalPaginas || totalPaginas === 0}
+            onClick={() => setPagina((p) => p + 1)}
+          >
+            →
+          </button>
+
+        </div>
 
         {filtrados.length === 0 && (
           <div className="text-center text-muted mt-3">

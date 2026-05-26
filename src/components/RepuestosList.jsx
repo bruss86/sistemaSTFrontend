@@ -3,8 +3,9 @@ import Modal from "./Modal";
 import RepuestoForm from "./RepuestoForm";
 import * as XLSX from "xlsx";
 
+const API_URL = import.meta.env.VITE_API_URL;
 //const API_URL = "http://localhost:3000";
-const API_URL = "https://sistemast.onrender.com";
+//const API_URL = "https://sistemast.onrender.com";
 
 export default function RepuestosList({
   repuestos = [],
