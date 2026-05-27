@@ -102,8 +102,10 @@ export default function InstrumentoList({ instrumentos = [], onNew, onEdit }) {
 
                   <td className={color}>
                     {i.fechaUltimoMantenimiento
-                      ? new Date(i.fechaUltimoMantenimiento).toLocaleDateString()
-                      : "—"}
+                      ? typeof i.fechaUltimoMantenimiento === "string"
+                        ? i.fechaUltimoMantenimiento.split("-").reverse().join("/")
+                        : new Date(i.fechaUltimoMantenimiento).toLocaleDateString("es-AR")
+                      : "-"}
                   </td>
 
                   <td>

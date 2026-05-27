@@ -31,7 +31,12 @@ export default function ServiciosTercerosList({
   // FILTRO + ORDENAMIENTO
   // =========================
   const filtrados = useMemo(() => {
-    const fDesde = desde ? new Date(desde) : null;
+
+    //const fDesde = desde ? new Date(desde) : null;
+
+    const fDesde = desde
+      ? new Date(new Date(desde).setHours(0, 0, 0, 0))
+      : null;
 
     const fHasta = hasta
       ? new Date(new Date(hasta).setHours(23, 59, 59, 999))
@@ -69,8 +74,10 @@ export default function ServiciosTercerosList({
 
     const data = filtrados.map((s) => ({
       Fecha: s.fechaServicio
-        ? new Date(s.fechaServicio).toLocaleDateString()
-        : "",
+        ? typeof s.fechaServicio === "string"
+          ? s.fechaServicio.split("-").reverse().join("/")
+          : new Date(s.fechaServicio).toLocaleDateString("es-AR")
+        : "-",
       Instrumento: getInstrumentoNombre(s),
       Proveedor: s.proveedor || "",
       Tipo: s.tipoServicio || "",
@@ -179,8 +186,10 @@ export default function ServiciosTercerosList({
 
                 <td>
                   {s.fechaServicio
-                    ? new Date(s.fechaServicio).toLocaleDateString()
-                    : ""}
+                    ? typeof s.fechaServicio === "string"
+                      ? s.fechaServicio.split("-").reverse().join("/")
+                      : new Date(s.fechaServicio).toLocaleDateString("es-AR")
+                    : "—"}
                 </td>
 
                 <td>{getInstrumentoNombre(s)}</td>

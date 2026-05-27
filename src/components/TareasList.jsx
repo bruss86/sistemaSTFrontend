@@ -319,10 +319,9 @@ export default function TareasList({
 
                   <td>
                     {t.fecha
-                      ? new Date(t.fecha)
-                          .toLocaleDateString(
-                            "es-AR"
-                          )
+                      ? typeof t.fecha === "string"
+                        ? t.fecha.split("-").reverse().join("/")
+                        : new Date(t.fecha).toLocaleDateString("es-AR")
                       : "—"}
                   </td>
 
