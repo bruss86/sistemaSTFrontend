@@ -1,14 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { getInstrumentos, getClientes, obtenerTareas } from "../api/api";
+import "../styles/Dashboard.css";
 
 export default function Dashboard({ refresh }) {
   const [instrumentos, setInstrumentos] = useState([]);
   const [clientes, setClientes] = useState([]);
   const [tareas, setTareas] = useState([]);
 
-  // =========================
-  // CARGA DATOS
-  // =========================
   useEffect(() => {
     const cargar = async () => {
       try {
@@ -27,9 +25,6 @@ export default function Dashboard({ refresh }) {
     cargar();
   }, [refresh]);
 
-  // =========================
-  // HELPERS FECHAS
-  // =========================
   const parseDateSafe = (value) => {
     if (!value) return null;
     const d = new Date(value);
@@ -48,9 +43,6 @@ export default function Dashboard({ refresh }) {
     return Math.floor((f - hoy) / (1000 * 60 * 60 * 24));
   };
 
-  // =========================
-  // VENCIMIENTOS
-  // =========================
   const { vencidos, proximos } = useMemo(() => {
     const venc = [];
     const prox = [];
@@ -71,19 +63,12 @@ export default function Dashboard({ refresh }) {
     return { vencidos: venc, proximos: prox };
   }, [instrumentos]);
 
-  // =========================
-  // TAREAS PENDIENTES
-  // =========================
   const tareasPendientes = useMemo(() => {
-    return tareas.filter(t =>
-      t.estado === "Pendiente" ||
-      !t.estado
+    return tareas.filter(
+      (t) => t.estado === "Pendiente" || !t.estado
     );
   }, [tareas]);
 
-  // =========================
-  // CARDS
-  // =========================
   const cards = [
     {
       title: "Clientes",
@@ -100,7 +85,7 @@ export default function Dashboard({ refresh }) {
       bg: "#e9f7ef",
     },
     {
-      title: "Tareas pendientes",
+      title: "Tareas",
       value: tareasPendientes.length,
       icon: "bi-list-task",
       color: "#6f42c1",
@@ -123,52 +108,35 @@ export default function Dashboard({ refresh }) {
   ];
 
   return (
-    <div
-      className="d-flex flex-column gap-3"
-      style={{ position: "sticky", top: "85px" }}
-    >
+    <div className="dashboard-container">
+
       {cards.map((c, i) => (
         <div
           key={i}
           className="dashboard-card"
           style={{
-            background: "white",
-            borderRadius: "18px",
-            padding: "18px",
-            boxShadow: "0 4px 14px rgba(0,0,0,0.08)",
             borderLeft: `6px solid ${c.color}`,
-            transition: "0.2s",
           }}
         >
-          <div className="d-flex justify-content-between align-items-center">
+          <div className="dashboard-card-content">
 
             <div>
-              <div style={{ fontSize: "13px", color: "#666" }}>
+              <div className="dashboard-title">
                 {c.title}
               </div>
 
-              <div style={{ fontSize: "32px", fontWeight: "700" }}>
+              <div className="dashboard-value">
                 {c.value}
               </div>
             </div>
 
             <div
-              style={{
-                width: "58px",
-                height: "58px",
-                borderRadius: "16px",
-                background: c.bg,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
+              className="dashboard-icon-box"
+              style={{ background: c.bg }}
             >
               <i
                 className={`bi ${c.icon}`}
-                style={{
-                  fontSize: "28px",
-                  color: c.color,
-                }}
+                style={{ color: c.color }}
               />
             </div>
 
@@ -176,8 +144,7 @@ export default function Dashboard({ refresh }) {
         </div>
       ))}
 
-      {/* ALERTAS */}
-      <div className="d-flex flex-column gap-2">
+      <div className="dashboard-alerts">
 
         {tareasPendientes.length > 0 && (
           <div className="alert alert-info m-0">
@@ -203,18 +170,10 @@ export default function Dashboard({ refresh }) {
             <div className="alert alert-success m-0">
               ✔ Todo en orden
             </div>
-        )}
+          )}
 
       </div>
 
-      <style>
-        {`
-          .dashboard-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 22px rgba(0,0,0,0.12);
-          }
-        `}
-      </style>
     </div>
   );
 }

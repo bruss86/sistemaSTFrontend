@@ -2,12 +2,14 @@ import { useEffect, useState, useMemo } from "react";
 
 export default function InstrumentoList({ instrumentos = [], onNew, onEdit }) {
   const [search, setSearch] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
 
-  const itemsPerPage = 10;
+  // PAGINACIÓN
+  const [pagina, setPagina] = useState(1);
+  const porPagina = 8;
 
   const filtrados = useMemo(() => {
     const t = search.toLowerCase().trim();
+
     if (!t) return instrumentos;
 
     return instrumentos.filter((i) => {
@@ -23,18 +25,15 @@ export default function InstrumentoList({ instrumentos = [], onNew, onEdit }) {
   }, [search, instrumentos]);
 
   useEffect(() => {
-    setCurrentPage(1);
+    setPagina(1);
   }, [search]);
 
-  const totalPages = useMemo(
-    () => Math.max(1, Math.ceil(filtrados.length / itemsPerPage)),
-    [filtrados.length]
-  );
+  const totalPaginas = Math.ceil(filtrados.length / porPagina);
 
-  const currentItems = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage;
-    return filtrados.slice(start, start + itemsPerPage);
-  }, [filtrados, currentPage]);
+  const instrumentosPaginados = useMemo(() => {
+    const start = (pagina - 1) * porPagina;
+    return filtrados.slice(start, start + porPagina);
+  }, [filtrados, pagina]);
 
   const getEstado = (fecha) => {
     if (!fecha) return "sin";
@@ -42,18 +41,19 @@ export default function InstrumentoList({ instrumentos = [], onNew, onEdit }) {
     const hoy = new Date();
     const base = new Date(fecha);
     const venc = new Date(base);
+
     venc.setFullYear(venc.getFullYear() + 1);
 
     const diff = Math.ceil((venc - hoy) / (1000 * 60 * 60 * 24));
 
     if (diff < 0) return "vencido";
     if (diff <= 30) return "proximo";
+
     return "ok";
   };
 
   return (
     <div className="card p-3 shadow-sm">
-
       {/* SEARCH + NEW */}
       <div className="d-flex gap-2 mb-3">
         <input
@@ -83,7 +83,7 @@ export default function InstrumentoList({ instrumentos = [], onNew, onEdit }) {
           </thead>
 
           <tbody>
-            {currentItems.map((i) => {
+            {instrumentosPaginados.map((i) => {
               const estado = getEstado(i.fechaUltimoMantenimiento);
 
               const color =
@@ -103,8 +103,13 @@ export default function InstrumentoList({ instrumentos = [], onNew, onEdit }) {
                   <td className={color}>
                     {i.fechaUltimoMantenimiento
                       ? typeof i.fechaUltimoMantenimiento === "string"
-                        ? i.fechaUltimoMantenimiento.split("-").reverse().join("/")
-                        : new Date(i.fechaUltimoMantenimiento).toLocaleDateString("es-AR")
+                        ? i.fechaUltimoMantenimiento
+                            .split("-")
+                            .reverse()
+                            .join("/")
+                        : new Date(
+                            i.fechaUltimoMantenimiento
+                          ).toLocaleDateString("es-AR")
                       : "-"}
                   </td>
 
@@ -123,21 +128,27 @@ export default function InstrumentoList({ instrumentos = [], onNew, onEdit }) {
         </table>
       </div>
 
-      {/* PAGINATION */}
-      <div className="d-flex justify-content-center mt-3 gap-2">
-        {Array.from({ length: totalPages }).map((_, i) => (
-          <button
-            key={i}
-            className={`btn btn-sm ${
-              currentPage === i + 1
-                ? "btn-primary"
-                : "btn-outline-primary"
-            }`}
-            onClick={() => setCurrentPage(i + 1)}
-          >
-            {i + 1}
-          </button>
-        ))}
+      {/* PAGINACIÓN */}
+      <div className="d-flex justify-content-center align-items-center gap-2 mt-3">
+        <button
+          className="btn btn-outline-secondary btn-sm"
+          disabled={pagina === 1}
+          onClick={() => setPagina((p) => p - 1)}
+        >
+          ←
+        </button>
+
+        <span>
+          Página {pagina} de {totalPaginas || 1}
+        </span>
+
+        <button
+          className="btn btn-outline-secondary btn-sm"
+          disabled={pagina === totalPaginas || totalPaginas === 0}
+          onClick={() => setPagina((p) => p + 1)}
+        >
+          →
+        </button>
       </div>
     </div>
   );

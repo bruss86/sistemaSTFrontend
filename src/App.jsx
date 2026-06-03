@@ -64,6 +64,7 @@ function App() {
     try {
       return JSON.parse(text);
     } catch {
+      console.error("Respuesta inválida:", text);
       return [];
     }
   };
@@ -71,6 +72,7 @@ function App() {
   const fetchAll = useCallback(async () => {
     if (!auth) return;
 
+    try {
     const headers = getHeaders();
 
     const [ins, cli, serv, rep, tar] = await Promise.all([
@@ -86,6 +88,10 @@ function App() {
     setServicios(serv || []);
     setRepuestos(rep || []);
     setTareas(tar || []);
+  } catch (error) {
+    console.error("Error al cargar datos:", error);
+    showToast("Error al cargar datos", "error");
+  }
   }, [auth]);
 
   useEffect(() => {

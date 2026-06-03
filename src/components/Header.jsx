@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 
 export default function Header({ onLogout, view, setView }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   const views = [
     { key: "instrumentos", label: "Instrumentos", icon: "🎸" },
     { key: "clientes", label: "Clientes", icon: "👤" },
@@ -9,48 +11,67 @@ export default function Header({ onLogout, view, setView }) {
     { key: "tareas", label: "Tareas", icon: "📋" },
   ];
 
+  const handleChangeView = (key) => {
+    setView(key);
+    setMenuOpen(false);
+  };
+
   return (
-    <header className="app-header px-3 py-2 mb-4">
+    <header className="app-header px-3 py-2 mb-3">
 
-      <div className="d-flex align-items-center justify-content-between gap-3">
+      {/* TOP BAR */}
+      <div className="header-top">
 
-        {/* LOGO / TITULO */}
-        <div className="d-flex align-items-center flex-shrink-0">
-          <h4 className="m-0 fw-bold">
-            📊 Sistema de Gestión
-          </h4>
+        {/* TITULO */}
+        <div className="app-title">
+          📊 Sistema de Gestión
         </div>
 
-        {/* NAV */}
-        <div className="flex-grow-1 d-flex justify-content-center">
-          <div className="nav-pills-custom">
+        {/* MENU CENTRO (DESKTOP) */}
+        <div className={`nav-center ${menuOpen ? "open" : ""}`}>
 
-            {views.map((v) => (
-              <button
-                key={v.key}
-                onClick={() => setView(v.key)}
-                className={`nav-pill ${
-                  view === v.key ? "active" : ""
-                }`}
-              >
-                <span className="me-2">{v.icon}</span>
-                {v.label}
-              </button>
-            ))}
+          {views.map((v) => (
+            <button
+              key={v.key}
+              className={`nav-pill ${view === v.key ? "active" : ""}`}
+              onClick={() => handleChangeView(v.key)}
+            >
+              <span className="me-1">{v.icon}</span>
+              {v.label}
+            </button>
+          ))}
 
-          </div>
-        </div>
-
-        {/* LOGOUT */}
-        <div className="flex-shrink-0">
+          {/* LOGOUT en mobile dentro del menú */}
           <button
-            className="btn btn-outline-danger btn-sm rounded-pill px-3"
+            className="btn btn-outline-danger btn-sm rounded-pill logout-mobile"
             onClick={() => {
               if (window.confirm("¿Cerrar sesión?")) onLogout();
             }}
           >
             🚪 Salir
           </button>
+
+        </div>
+
+        {/* ACCIONES */}
+        <div className="header-actions">
+
+          <button
+            className="menu-toggle"
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
+            {menuOpen ? "✕" : "☰"}
+          </button>
+
+          <button
+            className="btn btn-outline-danger btn-sm rounded-pill logout-desktop"
+            onClick={() => {
+              if (window.confirm("¿Cerrar sesión?")) onLogout();
+            }}
+          >
+            Salir 🚪
+          </button>
+
         </div>
 
       </div>

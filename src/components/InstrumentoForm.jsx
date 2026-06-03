@@ -267,6 +267,13 @@ export default function InstrumentoForm({
           ? "Actualizar"
           : "Crear"}
       </button>
+      <button
+        variant="outline-secondary"
+        className="w-100 mt-2 btn btn-secondary"
+        onClick={onClose}
+      >
+        Cancelar
+      </button>
     </form>
   );
 }
