@@ -1,16 +1,14 @@
 import { useEffect, useState, useMemo } from "react";
 import {
-  getClientes,
-  getInstrumentos,
+  //getClientes,
+  //getInstrumentos,
 } from "../api/api";
 
 import Modal from "./Modal";
 import ClienteInstrumentos from "./ClienteInstrumentos";
 import ClienteForm from "./ClienteForm";
 
-export default function ClienteList({ refresh }) {
-  const [clientes, setClientes] = useState([]);
-  const [instrumentos, setInstrumentos] = useState([]);
+export default function ClienteList({ clientes = [], instrumentos = [], refresh }) {
   const [search, setSearch] = useState("");
   const [ordenAsc, setOrdenAsc] = useState(true);
 
@@ -19,6 +17,8 @@ export default function ClienteList({ refresh }) {
   // 👉 modal cliente form
   const [showForm, setShowForm] = useState(false);
   const [clienteEditando, setClienteEditando] = useState(null);
+
+  const [clienteDelete, setClienteDelete] = useState(null);
 
   // 👉 paginación
   const [pagina, setPagina] = useState(1);
@@ -29,12 +29,12 @@ export default function ClienteList({ refresh }) {
     const cargar = async () => {
       try {
         const [cli, ins] = await Promise.all([
-          getClientes(),
-          getInstrumentos(),
+          //getClientes(),
+          //getInstrumentos(),
         ]);
 
-        setClientes(Array.isArray(cli) ? cli : []);
-        setInstrumentos(Array.isArray(ins) ? ins : []);
+        //setClientes(Array.isArray(cli) ? cli : []);
+        //setInstrumentos(Array.isArray(ins) ? ins : []);
       } catch (err) {
         console.error("Error cargando datos:", err);
       }
@@ -113,7 +113,7 @@ export default function ClienteList({ refresh }) {
           className="btn btn-outline-secondary"
           onClick={() => setOrdenAsc((p) => !p)}
         >
-          {ordenAsc ? "A → Z" : "Z → A"}
+          {ordenAsc ? <i className="bi bi-sort-alpha-down"></i> : <i className="bi bi-sort-alpha-down-alt"></i>}
         </button>
 
         {/* ➕ NUEVO CLIENTE */}
@@ -124,7 +124,7 @@ export default function ClienteList({ refresh }) {
             setShowForm(true);
           }}
         >
-          + Nuevo
+          <i className="bi bi-plus-circle"></i>
         </button>
       </div>
 
@@ -136,7 +136,7 @@ export default function ClienteList({ refresh }) {
               <th>Código</th>
               <th>Estado</th>
               <th>Inst.</th>
-              <th style={{ width: 100 }}>Editar</th>
+              <th style={{ width: 100 }}>Acciones</th>
             </tr>
           </thead>
 
@@ -189,6 +189,15 @@ export default function ClienteList({ refresh }) {
                       }}
                     >
                       <i className="bi bi-pencil"></i>
+                    </button>
+
+                    <button
+                      className="btn btn-outline-danger btn-sm"
+                      onClick={() => {
+                        setClienteDelete(c._id);
+                      }}
+                    >
+                      <i className="bi bi-trash3-fill"></i>
                     </button>
                   </td>
                 </tr>

@@ -9,6 +9,7 @@ import InstrumentoForm from "./components/InstrumentoForm";
 import Modal from "./components/Modal";
 import Dashboard from "./components/Dashboard";
 import Login from "./pages/Login";
+import CasoList from "./components/CasosList";
 
 
 import ServiciosTercerosForm from "./components/ServiciosTercerosForm";
@@ -21,8 +22,6 @@ import TareasList from "./components/TareasList";
 import TareaForm from "./components/TareaForm";
 
 const API_URL = import.meta.env.VITE_API_URL;
-//const API_URL = "http://localhost:3000";
-//const API_URL = "https://sistemast.onrender.com";
 
 function App() {
   const [auth, setAuth] = useState(() =>
@@ -46,8 +45,11 @@ function App() {
   const [showTareaModal, setShowTareaModal] = useState(false);
 
   const [instrumentoEdit, setInstrumentoEdit] = useState(null);
+  const [instrumentoDelete, setInstrumentoDelete] = useState(null);
   const [servicioEdit, setServicioEdit] = useState(null);
   const [tareaEdit, setTareaEdit] = useState(null);
+
+  const [casos, setCasos] = useState([]);
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });
@@ -75,12 +77,13 @@ function App() {
     try {
     const headers = getHeaders();
 
-    const [ins, cli, serv, rep, tar] = await Promise.all([
+    const [ins, cli, serv, rep, tar, cas] = await Promise.all([
       fetch(`${API_URL}/instrumentos`, { headers }).then(safeJson),
       fetch(`${API_URL}/clientes`, { headers }).then(safeJson),
       fetch(`${API_URL}/servicios-terceros`, { headers }).then(safeJson),
       fetch(`${API_URL}/repuestos`, { headers }).then(safeJson),
       fetch(`${API_URL}/tareas`, { headers }).then(safeJson),
+      fetch(`${API_URL}/casos`, { headers }).then(safeJson),
     ]);
 
     setInstrumentos(ins || []);
@@ -88,6 +91,7 @@ function App() {
     setServicios(serv || []);
     setRepuestos(rep || []);
     setTareas(tar || []);
+    setCasos(cas || []);
   } catch (error) {
     console.error("Error al cargar datos:", error);
     showToast("Error al cargar datos", "error");
@@ -111,6 +115,7 @@ function App() {
     setServicios([]);
     setRepuestos([]);
     setTareas([]);
+    setCasos([]);
   };
 
   if (!auth) {
@@ -147,7 +152,7 @@ function App() {
             {view === "instrumentos" && (
               <InstrumentoList
                 instrumentos={instrumentos}
-                onNew={() => {
+                onNew={() => { 
                   setInstrumentoEdit(null);
                   setShowInstrumentoModal(true);
                 }}
@@ -155,11 +160,25 @@ function App() {
                   setInstrumentoEdit(i);
                   setShowInstrumentoModal(true);
                 }}
+                onDelete={async(id) => {
+                  await fetch(`${API_URL}/instrumentos/${id}`, {
+                    method: "DELETE",
+                    headers: getHeaders(),
+                  });
+
+                  handleRefresh();
+                  showToast("Instrumento eliminado");
+
+                }}
               />
             )}
 
             {view === "clientes" && (
-              <ClienteList onNew={() => setShowClienteModal(true)} />
+              <ClienteList 
+                clientes={clientes} 
+                instrumentos={instrumentos}
+                onNew={() => setShowClienteModal(true)}
+              />
             )}
 
             {view === "servicios" && (
@@ -204,6 +223,13 @@ function App() {
                   handleRefresh();
                 }}
                 onNew={handleNewTarea}
+              />
+            )}
+
+            {view === "casos" && (
+              <CasoList
+                casos={casos}
+                onRefresh={handleRefresh}
               />
             )}
           </div>

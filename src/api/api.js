@@ -87,7 +87,13 @@ export async function createInstrumento(data) {
     window.location.reload();
     return;
   }
-  return res.json();
+
+  const resultado = await res.json();
+  if (!res.ok) {
+    throw new Error(resultado.error || "Error al crear instrumento");
+  } 
+
+  return resultado;
 }
 
 export async function updateInstrumento(id, data) {
@@ -105,7 +111,13 @@ export async function updateInstrumento(id, data) {
     window.location.reload();
     return;
   }
-  return res.json();
+
+  const resultado = await res.json();
+
+  if (!res.ok) {
+    throw new Error(resultado.error || "Error al actualizar instrumento");
+  }
+  return resultado;
 }
     
 

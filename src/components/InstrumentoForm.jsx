@@ -26,7 +26,7 @@ export default function InstrumentoForm({
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  //--------------------------------- ESTADOS PARA SUGGESTION DE CLIENTES ------------------------------const [clienteSearch, setClienteSearch] = useState("");
+  //--------------------------------- ESTADOS PARA SUGGESTION DE CLIENTES --------------------------------
   const [clienteSearch, setClienteSearch] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
 
@@ -62,8 +62,10 @@ export default function InstrumentoForm({
       });
     } else {
       setForm(initialForm);
+      setClienteSearch("");
     }
   }, [instrumento]);
+  
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -129,15 +131,15 @@ export default function InstrumentoForm({
       setForm(initialForm);
       setErrors({});
     } catch (err) {
-      setErrors({
-        general:
-          err?.response?.data?.error ||
-          err?.message ||
-          "Error al guardar",
-      });
-    } finally {
-      setLoading(false);
-    }
+        setErrors({
+          general:
+            err?.response?.data?.error ||
+            err?.message ||
+            "Error al guardar",
+        });
+      } finally {
+        setLoading(false);
+      }
   };
 
   return (
@@ -198,6 +200,7 @@ export default function InstrumentoForm({
       >
         <option value="Comodato">Comodato</option>
         <option value="Propio">Propio</option>
+        <option value="Prestado">Prestado</option>
         <option value="Alquilado">Alquilado</option>
       </select>
       <label htmlFor="floatingSelect">Condición</label>
@@ -211,8 +214,16 @@ export default function InstrumentoForm({
           onChange={(e) => {
             setClienteSearch(e.target.value);
             setShowSuggestions(true);
+
+            setForm((prev) => ({
+              ...prev,
+              cliente: "",
+            }));
           }}
           onFocus={() => setShowSuggestions(true)}
+          onBlur={() => {
+            setTimeout(() => setShowSuggestions(false), 200);
+          }}
         />
 
         {showSuggestions && clienteSearch && (
@@ -254,26 +265,24 @@ export default function InstrumentoForm({
       />
       <label htmlFor="floatingInput">Fecha Último Mantenimiento</label>
       </div>
+      <div className="d-flex gap-2 mt-3">
+        <button
+          type="submit"
+          className={`btn flex-fill ${
+            isEdit ? "btn-warning" : "btn-success"
+          }`}
+        >
+          {isEdit ? "Actualizar" : "Crear"}
+        </button>
 
-      <button
-        className={`btn w-100 mt-3 ${
-          isEdit ? "btn-warning" : "btn-success"
-        }`}
-        disabled={loading}
-      >
-        {loading
-          ? "Guardando..."
-          : isEdit
-          ? "Actualizar"
-          : "Crear"}
-      </button>
-      <button
-        variant="outline-secondary"
-        className="w-100 mt-2 btn btn-secondary"
-        onClick={onClose}
-      >
-        Cancelar
-      </button>
+        <button
+          type="button"
+          className="btn btn-secondary flex-fill"
+          onClick={onClose}
+        >
+          Cancelar
+        </button>
+      </div>
     </form>
   );
 }

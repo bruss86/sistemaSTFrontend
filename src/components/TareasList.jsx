@@ -7,8 +7,8 @@ export default function TareasList({
   onNew,
 }) {
   const [estadoFiltro, setEstadoFiltro] = useState("");
-  const [prioridadFiltro, setPrioridadFiltro] =
-    useState("");
+  const [prioridadFiltro, setPrioridadFiltro] = useState("");
+  const [responsableFiltro, setResponsableFiltro] = useState(""); 
   const [search, setSearch] = useState("");
 
   // =========================
@@ -67,6 +67,12 @@ export default function TareasList({
         )
           return false;
 
+        if (
+          responsableFiltro &&
+          t.responsable !== responsableFiltro
+        )
+          return false;
+
         const texto = `
           ${getCliente(t)}
           ${getInstrumento(t)}
@@ -109,6 +115,7 @@ export default function TareasList({
     tareas,
     estadoFiltro,
     prioridadFiltro,
+    responsableFiltro,
     search,
   ]);
 
@@ -150,6 +157,25 @@ export default function TareasList({
 
       default:
         return "bg-secondary";
+    }
+  };
+
+  const prioridadFila = (p) => {
+    switch (p) {
+      case "Urgente":
+        return "table-danger";
+
+      case "Alta":
+        return "table-warning";
+
+      case "Media":
+        return "table-primary";
+
+      case "Baja":
+        return "table-light";
+
+      default:
+        return "";
     }
   };
 
@@ -242,6 +268,35 @@ export default function TareasList({
           <option value="Baja">Baja</option>
         </select>
 
+        <select
+          className="form-select"
+          value={responsableFiltro}
+          onChange={(e) =>
+            setResponsableFiltro(e.target.value)
+          }
+          style={{ maxWidth: 220 }}
+        >
+          <option value="">
+            Todos los responsables
+          </option>
+
+          <option value="Vaccaro Sebastián">
+            Vaccaro Sebastián
+          </option>
+
+          <option value="Correas Gustavo">
+            Correas Gustavo
+          </option>
+
+          <option value="Orlandi Matías">
+            Orlandi Matías
+          </option>
+
+          <option value="Gerbaudo Leandro">
+            Gerbaudo Leandro
+          </option>
+        </select>
+
       </div>
 
       {/* ================= TABLA ================= */}
@@ -310,11 +365,10 @@ export default function TareasList({
               return (
                 <tr
                   key={t._id}
-                  className={
-                    finalizada
-                      ? "opacity-50"
-                      : ""
-                  }
+                  className={`
+                    ${prioridadFila(t.prioridad)}
+                    ${finalizada ? "opacity-50" : ""}
+                  `}
                 >
 
                   <td>
@@ -339,12 +393,12 @@ export default function TareasList({
 
                       <button
                         className="btn btn-sm btn-outline-primary"
-                        title="Editar"
+                        title="Ver / Editar"
                         onClick={() =>
                           onEdit?.(t)
                         }
                       >
-                        ✏️
+                        <i className="bi bi-eye-fill"></i>
                       </button>
 
                       <button

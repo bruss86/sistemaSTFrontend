@@ -214,14 +214,14 @@ export default function ServiciosTercerosList({
                     className="btn btn-sm btn-primary me-1"
                     onClick={() => handleEdit(s)}
                   >
-                    ✏️
+                    <i className="bi bi-pencil-fill"></i>
                   </button>
 
                   <button
                     className="btn btn-sm btn-danger"
                     onClick={() => onDelete?.(s._id)}
                   >
-                    🗑️
+                    <i className="bi bi-trash3-fill"></i>
                   </button>
 
                 </td>

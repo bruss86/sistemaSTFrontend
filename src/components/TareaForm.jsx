@@ -356,9 +356,8 @@ export default function TareaForm({
         <option>Cancelada</option>
       </select>
 
-      <input
-        className="form-control mb-2"
-        placeholder="Responsable"
+      <select
+        className="form-select mb-2"
         value={form.responsable}
         onChange={(e) =>
           setForm((prev) => ({
@@ -366,7 +365,12 @@ export default function TareaForm({
             responsable: e.target.value,
           }))
         }
-      />
+      >
+        <option value="Vaccaro Sebastián">Vaccaro Sebastián</option>
+        <option value="Correas Gustavo">Correas Gustavo</option>
+        <option value="Orlandi Matías">Orlandi Matías</option>
+        <option value="Gerbaudo Leandro">Gerbaudo Leandro</option>
+      </select>
 
       <textarea
         className="form-control mb-3"

@@ -1,41 +1,20 @@
 import { useEffect, useState, useMemo } from "react";
 
-export default function InstrumentoList({ instrumentos = [], onNew, onEdit }) {
+export default function InstrumentoList({ instrumentos = [], onNew, onEdit, onDelete }) {
   const [search, setSearch] = useState("");
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [instrumentoAEliminar, setInstrumentoAEliminar] = useState(null);
+
+  //Select para mostrar solo vencidos o todos
+
+  const [filtroEstado, setFiltroEstado] = useState("todos");
 
   // PAGINACIÓN
   const [pagina, setPagina] = useState(1);
   const porPagina = 8;
 
-  const filtrados = useMemo(() => {
-    const t = search.toLowerCase().trim();
-
-    if (!t) return instrumentos;
-
-    return instrumentos.filter((i) => {
-      const clienteNombre = i.cliente?.nombre?.toLowerCase() || "";
-
-      return (
-        i.numeroSerie?.toLowerCase().includes(t) ||
-        i.numeroPartida?.toLowerCase().includes(t) ||
-        i.descripcion?.toLowerCase().includes(t) ||
-        clienteNombre.includes(t)
-      );
-    });
-  }, [search, instrumentos]);
-
-  useEffect(() => {
-    setPagina(1);
-  }, [search]);
-
-  const totalPaginas = Math.ceil(filtrados.length / porPagina);
-
-  const instrumentosPaginados = useMemo(() => {
-    const start = (pagina - 1) * porPagina;
-    return filtrados.slice(start, start + porPagina);
-  }, [filtrados, pagina]);
-
-  const getEstado = (fecha) => {
+   const getEstado = (fecha) => {
     if (!fecha) return "sin";
 
     const hoy = new Date();
@@ -52,6 +31,48 @@ export default function InstrumentoList({ instrumentos = [], onNew, onEdit }) {
     return "ok";
   };
 
+ const filtrados = useMemo(() => {
+    const t = search.toLowerCase().trim();
+
+    return instrumentos.filter((i) => {
+      const clienteNombre = i.cliente?.nombre?.toLowerCase() || "";
+
+      const coincideBusqueda =
+        !t ||
+        i.numeroSerie?.toLowerCase().includes(t) ||
+        i.numeroPartida?.toLowerCase().includes(t) ||
+        i.descripcion?.toLowerCase().includes(t) ||
+        clienteNombre.includes(t);
+
+      const estado = getEstado(i.fechaUltimoMantenimiento);
+
+      const coincideEstado =
+        filtroEstado === "todos" ||
+        estado === filtroEstado;
+
+      return coincideBusqueda && coincideEstado;
+    });
+  }, [search, instrumentos, filtroEstado]);
+
+  useEffect(() => {
+    setPagina(1);
+  }, [search]);
+
+  const totalPaginas = Math.ceil(filtrados.length / porPagina);
+
+  useEffect(() => {
+  if (pagina > totalPaginas && totalPaginas > 0) {
+    setPagina(totalPaginas);
+  }
+}, [pagina, totalPaginas]);
+
+  const instrumentosPaginados = useMemo(() => {
+    const start = (pagina - 1) * porPagina;
+    return filtrados.slice(start, start + porPagina);
+  }, [filtrados, pagina]);
+
+ 
+
   return (
     <div className="card p-3 shadow-sm">
       {/* SEARCH + NEW */}
@@ -63,8 +84,22 @@ export default function InstrumentoList({ instrumentos = [], onNew, onEdit }) {
           onChange={(e) => setSearch(e.target.value)}
         />
 
-        <button className="btn btn-primary" onClick={onNew}>
-          ➕ Nuevo
+          <select
+            className="form-select"
+            style={{ maxWidth: "220px" }}
+            value={filtroEstado}
+            onChange={(e) => setFiltroEstado(e.target.value)}
+          >
+            <option value="todos">Todos</option>
+            <option value="ok">Vigentes</option>
+            <option value="proximo">Vencen en 30 días</option>
+            <option value="vencido">Vencidos</option>
+          </select>
+
+        <button className="btn btn-primary" onClick={onNew} 
+        data-bs-toggle="tooltip" 
+        data-bs-placement="top" title="Agregar nuevo instrumento">
+          <i className="bi bi-plus-circle"></i>
         </button>
       </div>
 
@@ -83,7 +118,16 @@ export default function InstrumentoList({ instrumentos = [], onNew, onEdit }) {
           </thead>
 
           <tbody>
-            {instrumentosPaginados.map((i) => {
+            
+            {
+              instrumentosPaginados.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="text-center text-muted">
+                    No se encontraron instrumentos
+                  </td>
+                </tr>
+              ) : (
+                    instrumentosPaginados.map((i) => {
               const estado = getEstado(i.fechaUltimoMantenimiento);
 
               const color =
@@ -113,17 +157,27 @@ export default function InstrumentoList({ instrumentos = [], onNew, onEdit }) {
                       : "-"}
                   </td>
 
-                  <td>
+                  <td className="d-flex gap-1">
                     <button
                       className="btn btn-sm btn-outline-primary"
                       onClick={() => onEdit(i)}
                     >
-                      ✏️
+                      <i className="bi bi-pencil-fill"></i>
+                    </button>
+                    <button
+                      className="btn btn-sm btn-outline-danger"
+                      onClick={() => {
+                        setInstrumentoAEliminar(i);
+                        setShowDeleteModal(true);
+                      }}
+                    >
+                      <i className="bi bi-trash-fill"></i>
                     </button>
                   </td>
                 </tr>
               );
-            })}
+                    })
+              )}
           </tbody>
         </table>
       </div>
@@ -150,6 +204,68 @@ export default function InstrumentoList({ instrumentos = [], onNew, onEdit }) {
           →
         </button>
       </div>
+
+      {/* MODAL ELIMINAR */}
+      {showDeleteModal && (
+        <>
+          <div
+            className="modal fade show"
+            style={{ display: "block" }}
+            tabIndex="-1"
+          >
+            <div className="modal-dialog">
+              <div className="modal-content">
+
+                <div className="modal-header">
+                  <h5 className="modal-title">Advertencia</h5>
+
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setShowDeleteModal(false)}
+                  />
+                </div>
+
+                <div className="modal-body">
+                  <p>
+                    ¿Está seguro de querer eliminar el instrumento SN
+                    <strong>
+                      {" "}
+                      {instrumentoAEliminar?.numeroSerie}
+                    </strong>
+                    ?
+                  </p>
+                </div>
+
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => setShowDeleteModal(false)}
+                  >
+                    Cancelar
+                  </button>
+
+                  <button
+                    type="button"
+                    className="btn btn-danger"
+                    onClick={() => {
+                      onDelete(instrumentoAEliminar._id);
+                      setShowDeleteModal(false);
+                      setInstrumentoAEliminar(null);
+                    }}
+                  >
+                    Eliminar
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <div className="modal-backdrop fade show"></div>
+        </>
+      )}
     </div>
   );
 }
