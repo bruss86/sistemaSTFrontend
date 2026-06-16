@@ -178,6 +178,14 @@ function App() {
                 clientes={clientes} 
                 instrumentos={instrumentos}
                 onNew={() => setShowClienteModal(true)}
+                onDelete={async (id) => {
+                  await fetch(`${API_URL}/clientes/${id}`, {
+                    method: "DELETE",
+                    headers: getHeaders(),
+                  });
+                  handleRefresh();
+                  showToast("Cliente eliminado");
+                }}
               />
             )}
 

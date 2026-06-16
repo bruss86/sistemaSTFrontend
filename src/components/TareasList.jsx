@@ -6,7 +6,7 @@ export default function TareasList({
   onDelete,
   onNew,
 }) {
-  const [estadoFiltro, setEstadoFiltro] = useState("");
+  const [estadoFiltro, setEstadoFiltro] = useState("Pendiente");
   const [prioridadFiltro, setPrioridadFiltro] = useState("");
   const [responsableFiltro, setResponsableFiltro] = useState(""); 
   const [search, setSearch] = useState("");

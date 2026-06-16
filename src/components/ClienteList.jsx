@@ -8,11 +8,13 @@ import Modal from "./Modal";
 import ClienteInstrumentos from "./ClienteInstrumentos";
 import ClienteForm from "./ClienteForm";
 
-export default function ClienteList({ clientes = [], instrumentos = [], refresh }) {
+export default function ClienteList({ clientes = [], instrumentos = [], refresh, onDelete }) {
   const [search, setSearch] = useState("");
   const [ordenAsc, setOrdenAsc] = useState(true);
 
   const [selected, setSelected] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [clienteAEliminar, setClienteAEliminar] = useState(null);
 
   // 👉 modal cliente form
   const [showForm, setShowForm] = useState(false);
@@ -180,7 +182,7 @@ export default function ClienteList({ clientes = [], instrumentos = [], refresh 
                   </td>
 
                   {/* ✏️ EDITAR CLIENTE */}
-                  <td className="text-center">
+                  <td className="d-flex gap-1">
                     <button
                       className="btn btn-outline-secondary btn-sm"
                       onClick={() => {
@@ -194,7 +196,8 @@ export default function ClienteList({ clientes = [], instrumentos = [], refresh 
                     <button
                       className="btn btn-outline-danger btn-sm"
                       onClick={() => {
-                        setClienteDelete(c._id);
+                        setClienteDelete(c);
+                        setShowDeleteModal(true);
                       }}
                     >
                       <i className="bi bi-trash3-fill"></i>
@@ -271,6 +274,68 @@ export default function ClienteList({ clientes = [], instrumentos = [], refresh 
             }}
           />
         </Modal>
+      )}
+
+      {/* MODAL ELIMINAR */}
+      {showDeleteModal && (
+        <>
+          <div
+            className="modal fade show"
+            style={{ display: "block" }}
+            tabIndex="-1"
+          >
+            <div className="modal-dialog">
+              <div className="modal-content">
+
+                <div className="modal-header">
+                  <h5 className="modal-title">Advertencia</h5>
+
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setShowDeleteModal(false)}
+                  />
+                </div>
+
+                <div className="modal-body">
+                  <p>
+                    ¿Está seguro de querer eliminar el cliente código
+                    <strong>
+                      {" "}
+                      {clienteDelete?.codigoCliente}
+                    </strong>
+                    ?
+                  </p>
+                </div>
+
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => setShowDeleteModal(false)}
+                  >
+                    Cancelar
+                  </button>
+
+                  <button
+                    type="button"
+                    className="btn btn-danger"
+                    onClick={() => {
+                      onDelete(clienteDelete._id);
+                      setShowDeleteModal(false);
+                      setClienteAEliminar(null);
+                    }}
+                  >
+                    Eliminar
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <div className="modal-backdrop fade show"></div>
+        </>
       )}
     </div>
   );
