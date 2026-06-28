@@ -177,7 +177,7 @@ function App() {
               <ClienteList 
                 clientes={clientes} 
                 instrumentos={instrumentos}
-                onNew={() => setShowClienteModal(true)}
+                onRefresh={handleRefresh}
                 onDelete={async (id) => {
                   await fetch(`${API_URL}/clientes/${id}`, {
                     method: "DELETE",

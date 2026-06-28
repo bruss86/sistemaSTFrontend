@@ -8,7 +8,7 @@ import Modal from "./Modal";
 import ClienteInstrumentos from "./ClienteInstrumentos";
 import ClienteForm from "./ClienteForm";
 
-export default function ClienteList({ clientes = [], instrumentos = [], refresh, onDelete }) {
+export default function ClienteList({ clientes = [], instrumentos = [], refresh, onDelete, onRefresh }) {
   const [search, setSearch] = useState("");
   const [ordenAsc, setOrdenAsc] = useState(true);
 
@@ -257,18 +257,12 @@ export default function ClienteList({ clientes = [], instrumentos = [], refresh,
           <ClienteForm
             clienteEditando={clienteEditando}
             onClienteCreado={async () => {
+              onRefresh?.();
               setShowForm(false);
               setClienteEditando(null);
             }}
-            onClienteGuardado={(clienteActualizado) => {
-              setClientes((prev) =>
-                prev.map((c) =>
-                  c._id === clienteActualizado._id
-                    ? clienteActualizado
-                    : c
-                )
-              );
-
+            onClienteGuardado={() => {
+              onRefresh?.();
               setShowForm(false);
               setClienteEditando(null);
             }}
