@@ -1,8 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 
 const API_URL = import.meta.env.VITE_API_URL;
-//const API_URL = "http://localhost:3000";
-//const API_URL = "https://sistemast.onrender.com";
 
 const initialState = {
   cliente: "",
@@ -31,6 +29,8 @@ export default function TareaForm({
 
   const [instrumentosCliente, setInstrumentosCliente] =
     useState([]);
+
+  const [error, setError] = useState("");
 
   const clienteRef = useRef(null);
 
@@ -141,11 +141,17 @@ export default function TareaForm({
   // =========================
   // VALIDACIÓN
   // =========================
-  const isValid =
+  /*const isValid =
     form.tarea.trim() &&
     form.cliente &&
     form.instrumento &&
+    form.fecha;*/
+  
+  const isValid =
+    form.tarea.trim() &&
     form.fecha;
+
+  
 
   // =========================
   // SUBMIT
@@ -154,6 +160,8 @@ export default function TareaForm({
     e.preventDefault();
 
     if (!isValid || loading) return;
+
+    setError("");
 
     try {
       setLoading(true);
@@ -164,23 +172,29 @@ export default function TareaForm({
 
       const method = tareaEdit ? "PUT" : "POST";
 
+      const data = {
+        ...form,
+        cliente: form.cliente || null,
+        instrumento: form.instrumento || null,
+      };
+
       const res = await fetch(url, {
         method,
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify(data),
       });
 
-      const data = await res.json();
+       const response = await res.json();
 
       if (!res.ok) {
         throw new Error(
-          data.error || "Error al guardar tarea"
+          response.error || "Error al guardar tarea"
         );
       }
-
+      setError("");
       showToast?.(
         tareaEdit
           ? "Tarea actualizada correctamente"
@@ -196,7 +210,9 @@ export default function TareaForm({
     } catch (err) {
       console.error(err);
 
-      showToast?.(err.message, "danger");
+      setError(err.message || "No se pudo guardar la tarea.");
+
+      // showToast?.(err.message, "danger");
     } finally {
       setLoading(false);
     }
@@ -210,69 +226,74 @@ export default function TareaForm({
           : "➕ Nueva Tarea"}
       </h5>
 
-      {/* ================= CLIENTE ================= */}
-      <div
-        className="position-relative mb-2"
-        ref={clienteRef}
-      >
-        <input
-          className="form-control"
-          placeholder="Buscar cliente..."
-          value={clienteSearch}
-          autoComplete="off"
-          onChange={(e) => {
-            setClienteSearch(e.target.value);
+      <div className="row">
 
-            setShowClienteDropdown(true);
+        <div className="col-md-6 mb-2">
+            {/* ================= CLIENTE ================= */}
+                  <div
+                    className="position-relative mb-2"
+                    ref={clienteRef}
+                  >
+                    <input
+                      className="form-control"
+                      placeholder="Buscar cliente..."
+                      value={clienteSearch}
+                      autoComplete="off"
+                      onChange={(e) => {
+                        setClienteSearch(e.target.value);
 
-            setForm((prev) => ({
-              ...prev,
-              cliente: "",
-              instrumento: "",
-            }));
-          }}
-          onFocus={() => setShowClienteDropdown(true)}
-        />
+                        setShowClienteDropdown(true);
 
-        {showClienteDropdown && clienteSearch && (
-          <div
-            className="dropdown-menu show w-100 shadow"
-            style={{
-              maxHeight: "220px",
-              overflowY: "auto",
-            }}
-          >
-            {filteredClientes.length > 0 ? (
-              filteredClientes.map((c) => (
-                <button
-                  key={c._id}
-                  type="button"
-                  className="dropdown-item"
-                  onClick={() => {
-                    setForm((prev) => ({
-                      ...prev,
-                      cliente: c._id,
-                      instrumento: "",
-                    }));
+                        setForm((prev) => ({
+                          ...prev,
+                          cliente: "",
+                          instrumento: "",
+                        }));
+                      }}
+                      onFocus={() => setShowClienteDropdown(true)}
+                    />
 
-                    setClienteSearch(c.nombre);
+                    {showClienteDropdown && clienteSearch && (
+                      <div
+                        className="dropdown-menu show w-100 shadow"
+                        style={{
+                          maxHeight: "220px",
+                          overflowY: "auto",
+                        }}
+                      >
+                        {filteredClientes.length > 0 ? (
+                          filteredClientes.map((c) => (
+                            <button
+                              key={c._id}
+                              type="button"
+                              className="dropdown-item"
+                              onClick={() => {
+                                setForm((prev) => ({
+                                  ...prev,
+                                  cliente: c._id,
+                                  instrumento: "",
+                                }));
 
-                    setShowClienteDropdown(false);
-                  }}
-                >
-                  {c.nombre}
-                </button>
-              ))
-            ) : (
-              <div className="dropdown-item text-muted">
-                Sin resultados
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+                                setClienteSearch(c.nombre);
 
-      {/* ================= INSTRUMENTOS ================= */}
+                                setShowClienteDropdown(false);
+                              }}
+                            >
+                              {c.nombre}
+                            </button>
+                          ))
+                        ) : (
+                          <div className="dropdown-item text-muted">
+                            Sin resultados
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+        </div>
+
+        <div className="col-md-6 mb-2">
+                     {/* ================= INSTRUMENTOS ================= */}
       <select
         className="form-select mb-2"
         value={form.instrumento}
@@ -298,48 +319,58 @@ export default function TareaForm({
           </option>
         ))}
       </select>
+        </div>
 
-      {/* ================= TAREA ================= */}
-      <input
-        className="form-control mb-2"
-        placeholder="Tarea"
-        value={form.tarea}
-        onChange={(e) =>
-          setForm((prev) => ({
-            ...prev,
-            tarea: e.target.value,
-          }))
-        }
-      />
+        <div className="col-12 mb-2">
+          {/* ================= TAREA ================= */}
+            <input className="form-control mb-2"
+              placeholder="Tarea"
+              value={form.tarea}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  tarea: e.target.value,
+                }))
+              }
+            />
+        </div>
 
-      <input
-        type="date"
-        className="form-control mb-2"
-        value={form.fecha}
-        onChange={(e) =>
-          setForm((prev) => ({
-            ...prev,
-            fecha: e.target.value,
-          }))
-        }
-      />
+        <div className="col-md-6 mb-2"> 
+          {/* ================= FECHA ================= */}
+                <input
+                  type="date"
+                  className="form-control mb-2"
+                  value={form.fecha}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      fecha: e.target.value,
+                    }))
+                  }
+                />
+        </div>
 
-      <select
-        className="form-select mb-2"
-        value={form.prioridad}
-        onChange={(e) =>
-          setForm((prev) => ({
-            ...prev,
-            prioridad: e.target.value,
-          }))
-        }
-      >
-        <option>Baja</option>
-        <option>Media</option>
-        <option>Alta</option>
-        <option>Urgente</option>
-      </select>
+        <div className="col-md-6 mb-2">
+          {/* ================= PRIORIDAD================= */}
+                <select
+                  className="form-select mb-2"
+                  value={form.prioridad}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      prioridad: e.target.value,
+                    }))
+                  }
+                >
+                  <option>Baja</option>
+                  <option>Media</option>
+                  <option>Alta</option>
+                  <option>Urgente</option>
+                </select>
+        </div>
 
+        <div className="col-md-6 mb-2">
+      {/* ================= ESTADO ================= */}
       <select
         className="form-select mb-2"
         value={form.estado}
@@ -355,6 +386,10 @@ export default function TareaForm({
         <option>Finalizada</option>
         <option>Cancelada</option>
       </select>
+        </div>
+
+        <div className="col-md-6 mb-2">
+{/* ================= RESPONSABLE ================= */}
 
       <select
         className="form-select mb-2"
@@ -372,8 +407,12 @@ export default function TareaForm({
         <option value="Gerbaudo Leandro">Gerbaudo Leandro</option>
       </select>
 
-      <textarea
-        className="form-control mb-3"
+        </div>
+
+        <div className="col-12 mb-2">
+{/* ================= NOTAS ================= */}
+
+      <textarea className="form-control mb-2"
         rows={3}
         placeholder="Notas"
         value={form.notas}
@@ -384,6 +423,16 @@ export default function TareaForm({
           }))
         }
       />
+        </div>
+
+      </div>
+
+      {error && (
+        <div className="alert alert-danger py-2 mb-3" role="alert">
+          {error}
+        </div>
+      )}
+
 
       {/* ================= BOTONES ================= */}
       <div className="d-flex gap-2">
