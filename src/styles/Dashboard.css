@@ -54,6 +54,67 @@
   gap: 8px;
 }
 
+.dashboard-status{
+    margin-top:30px;
+    display:flex;
+    flex-direction:column;
+    gap:15px;
+}
+
+.status-card{
+    display:flex;
+    align-items:center;
+    gap:18px;
+    padding:18px 22px;
+    border-radius:16px;
+    background:#fff;
+    box-shadow:0 8px 24px rgba(0,0,0,.06);
+    border-left:6px solid;
+    transition:.25s;
+}
+
+.status-card:hover{
+    transform:translateY(-3px);
+    box-shadow:0 14px 28px rgba(0,0,0,.10);
+}
+
+.status-icon{
+    width:52px;
+    height:52px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:1.5rem;
+    background:#f8f9fa;
+}
+
+.status-title{
+    font-weight:600;
+    font-size:1rem;
+}
+
+.status-text{
+    color:#6c757d;
+    font-size:.9rem;
+}
+
+.info{
+    border-color:#0d6efd;
+}
+
+.warning{
+    border-color:#ffc107;
+}
+
+.danger{
+    border-color:#dc3545;
+}
+
+.success{
+    border-color:#198754;
+}
+
 /* ==========================
    MOBILE
    ========================== */

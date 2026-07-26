@@ -1,0 +1,31 @@
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(25px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.login-card {
+    animation: fadeInUp .6s ease-out;
+    transition: .25s;
+}
+
+.form-control{
+    border-radius:12px;
+    border:2px solid #dee2e6;
+    transition:.2s;
+}
+
+.form-control:focus{
+    border-color:#0d6efd;
+    box-shadow:0 0 0 .2rem rgba(13,110,253,.15);
+}
+
+.btn-primary{
+    transition:.25s;
+}

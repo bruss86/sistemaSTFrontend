@@ -71,35 +71,35 @@ export default function Dashboard({ refresh }) {
 
   const cards = [
     {
-      title: "Clientes",
+      title: "Clientes registrados",
       value: clientes.length,
       icon: "bi-people-fill",
       color: "#0d6efd",
       bg: "#e7f1ff",
     },
     {
-      title: "Instrumentos",
+      title: "Instrumentos registrados",
       value: instrumentos.length,
       icon: "bi-tools",
       color: "#198754",
       bg: "#e9f7ef",
     },
     {
-      title: "Tareas",
+      title: "Tareas pendientes",
       value: tareasPendientes.length,
       icon: "bi-list-task",
       color: "#6f42c1",
       bg: "#f3e8ff",
     },
     {
-      title: "Próximos",
+      title: "Mantenimientos próximos",
       value: proximos.length,
       icon: "bi-exclamation-triangle-fill",
       color: "#ffc107",
       bg: "#fff8e1",
     },
     {
-      title: "Vencidos",
+      title: "Mantenimientos vencidos",
       value: vencidos.length,
       icon: "bi-x-circle-fill",
       color: "#dc3545",
@@ -144,35 +144,59 @@ export default function Dashboard({ refresh }) {
         </div>
       ))}
 
-      <div className="dashboard-alerts">
+      <div className="dashboard-status">
 
-        {tareasPendientes.length > 0 && (
-          <div className="alert alert-info m-0">
-            📝 {tareasPendientes.length} tareas pendientes
-          </div>
-        )}
-
-        {vencidos.length > 0 && (
-          <div className="alert alert-danger m-0">
-            ⚠️ {vencidos.length} instrumentos vencidos
-          </div>
-        )}
-
-        {proximos.length > 0 && (
-          <div className="alert alert-warning m-0">
-            ⏳ {proximos.length} próximos a mantenimiento
-          </div>
-        )}
-
-        {tareasPendientes.length === 0 &&
-          vencidos.length === 0 &&
-          proximos.length === 0 && (
-            <div className="alert alert-success m-0">
-              ✔ Todo en orden
-            </div>
-          )}
-
+  {tareasPendientes.length > 0 && (
+    <div className="status-card info">
+      <div className="status-icon">📝</div>
+      <div>
+        <div className="status-title">Tareas pendientes</div>
+        <div className="status-text">
+          {tareasPendientes.length} por realizar
+        </div>
       </div>
+    </div>
+  )}
+
+  {vencidos.length > 0 && (
+    <div className="status-card danger">
+      <div className="status-icon">⚠️</div>
+      <div>
+        <div className="status-title">Instrumentos vencidos</div>
+        <div className="status-text">
+          {vencidos.length} requieren mantenimiento
+        </div>
+      </div>
+    </div>
+  )}
+
+  {proximos.length > 0 && (
+    <div className="status-card warning">
+      <div className="status-icon">⏳</div>
+      <div>
+        <div className="status-title">Próximos mantenimientos</div>
+        <div className="status-text">
+          {proximos.length} vencerán en 30 días
+        </div>
+      </div>
+    </div>
+  )}
+
+  {tareasPendientes.length === 0 &&
+    vencidos.length === 0 &&
+    proximos.length === 0 && (
+      <div className="status-card success">
+        <div className="status-icon">✅</div>
+        <div>
+          <div className="status-title">Sistema al día</div>
+          <div className="status-text">
+            No hay alertas pendientes
+          </div>
+        </div>
+      </div>
+    )}
+
+</div>
 
     </div>
   );

@@ -1,8 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import {
-  //getClientes,
-  //getInstrumentos,
-} from "../api/api";
+import "../styles/ClienteList.css";
 
 import Modal from "./Modal";
 import ClienteInstrumentos from "./ClienteInstrumentos";
@@ -14,7 +11,6 @@ export default function ClienteList({ clientes = [], instrumentos = [], refresh,
 
   const [selected, setSelected] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [clienteAEliminar, setClienteAEliminar] = useState(null);
 
   // 👉 modal cliente form
   const [showForm, setShowForm] = useState(false);
@@ -28,22 +24,7 @@ export default function ClienteList({ clientes = [], instrumentos = [], refresh,
 
   useEffect(() => {
     setPagina(1);
-    const cargar = async () => {
-      try {
-        const [cli, ins] = await Promise.all([
-          //getClientes(),
-          //getInstrumentos(),
-        ]);
-
-        //setClientes(Array.isArray(cli) ? cli : []);
-        //setInstrumentos(Array.isArray(ins) ? ins : []);
-      } catch (err) {
-        console.error("Error cargando datos:", err);
-      }
-    };
-
-    cargar();
-  }, [refresh],[search]);
+  }, [search]);
 
   const filtrados = useMemo(() => {
     const t = search.toLowerCase().trim();
@@ -72,6 +53,7 @@ export default function ClienteList({ clientes = [], instrumentos = [], refresh,
     return filtrados.slice(inicio, inicio + porPagina);
   }, [filtrados, pagina]);
 
+  /*
   const getCantidad = (id) =>
     instrumentos.filter((i) => i?.cliente?._id === id).length;
 
@@ -91,13 +73,55 @@ export default function ClienteList({ clientes = [], instrumentos = [], refresh,
       return vencimiento < hoy;
     }).length;
   };
-
   const getEstado = (id) => {
     const v = getVencidos(id);
     if (v >= 2) return "critico";
     if (v === 1) return "alerta";
     return "ok";
-  };
+  };*/
+
+    const estadisticasClientes = useMemo(() => {
+      const hoy = new Date();
+      const stats = {};
+
+      instrumentos.forEach((i) => {
+        const id = i?.cliente?._id;
+        if (!id) return;
+
+        if (!stats[id]) {
+          stats[id] = {
+            cantidad: 0,
+            vencidos: 0,
+          };
+        }
+
+        stats[id].cantidad++;
+
+        if (!i.fechaUltimoMantenimiento) return;
+
+        const fecha = new Date(i.fechaUltimoMantenimiento);
+
+        if (isNaN(fecha.getTime())) return;
+
+        const vencimiento = new Date(fecha);
+        vencimiento.setFullYear(vencimiento.getFullYear() + 1);
+
+        if (vencimiento < hoy) {
+          stats[id].vencidos++;
+        }
+      });
+
+      Object.values(stats).forEach((s) => {
+        s.estado =
+          s.vencidos >= 2
+            ? "critico"
+            : s.vencidos === 1
+            ? "alerta"
+            : "ok";
+      });
+
+      return stats;
+      }, [instrumentos]);
 
   return (
     <div className="card p-3 shadow-sm">
@@ -144,13 +168,27 @@ export default function ClienteList({ clientes = [], instrumentos = [], refresh,
 
           <tbody>
             {clientesPaginados.map((c) => {
-              const estado = getEstado(c._id);
+              /*const estado = getEstado(c._id);
               const cant = getCantidad(c._id);
-              const vencidos = getVencidos(c._id);
+              const vencidos = getVencidos(c._id);*/
+
+              const stats = estadisticasClientes[c._id] || {
+                cantidad: 0,
+                vencidos: 0,
+                estado: "ok",
+              };
+
+              const { cantidad: cant, vencidos, estado } = stats;
 
               return (
-                <tr key={c._id}>
-                  <td>{c.nombre}</td>
+                <tr className={
+                    estado === "critico"
+                        ? "table-danger"
+                        : estado === "alerta"
+                        ? "table-warning"
+                        : ""
+                } key={c._id}>
+                  <td  className="col-cliente">{c.nombre}</td>
                   <td>{c.codigoCliente}</td>
 
                   <td className="text-center">
@@ -185,6 +223,7 @@ export default function ClienteList({ clientes = [], instrumentos = [], refresh,
                   <td className="d-flex gap-1">
                     <button
                       className="btn btn-outline-secondary btn-sm"
+                      title="Editar cliente"
                       onClick={() => {
                         setClienteEditando(c);
                         setShowForm(true);
@@ -195,6 +234,7 @@ export default function ClienteList({ clientes = [], instrumentos = [], refresh,
 
                     <button
                       className="btn btn-outline-danger btn-sm"
+                      title="Eliminar cliente"
                       onClick={() => {
                         setClienteDelete(c);
                         setShowDeleteModal(true);
@@ -317,7 +357,6 @@ export default function ClienteList({ clientes = [], instrumentos = [], refresh,
                     onClick={() => {
                       onDelete(clienteDelete._id);
                       setShowDeleteModal(false);
-                      setClienteAEliminar(null);
                     }}
                   >
                     Eliminar

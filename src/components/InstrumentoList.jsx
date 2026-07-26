@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import "../styles/InstrumentoList.css";
 
 export default function InstrumentoList({ instrumentos = [], onNew, onEdit, onDelete }) {
   const [search, setSearch] = useState("");
@@ -31,10 +32,17 @@ export default function InstrumentoList({ instrumentos = [], onNew, onEdit, onDe
     return "ok";
   };
 
+  const prioridadEstado = {
+      vencido: 0,
+      proximo: 1,
+      ok: 2,
+      sin: 3
+  };
  const filtrados = useMemo(() => {
     const t = search.toLowerCase().trim();
 
-    return instrumentos.filter((i) => {
+    return instrumentos
+    .filter((i) => {
       const clienteNombre = i.cliente?.nombre?.toLowerCase() || "";
 
       const coincideBusqueda =
@@ -51,12 +59,16 @@ export default function InstrumentoList({ instrumentos = [], onNew, onEdit, onDe
         estado === filtroEstado;
 
       return coincideBusqueda && coincideEstado;
-    });
+    })
+    .sort((a, b) => 
+      prioridadEstado[getEstado(a.fechaUltimoMantenimiento)] -
+      prioridadEstado[getEstado(b.fechaUltimoMantenimiento)]
+    );
   }, [search, instrumentos, filtroEstado]);
 
   useEffect(() => {
     setPagina(1);
-  }, [search]);
+  }, [search, filtroEstado]);
 
   const totalPaginas = Math.ceil(filtrados.length / porPagina);
 
@@ -70,8 +82,53 @@ export default function InstrumentoList({ instrumentos = [], onNew, onEdit, onDe
     const start = (pagina - 1) * porPagina;
     return filtrados.slice(start, start + porPagina);
   }, [filtrados, pagina]);
-
  
+  const formatearFecha = (fecha) => {
+    if (!fecha) return "-";
+    else if (typeof fecha === "string") {
+      return fecha.split("-").reverse().join("/");
+    }
+    return new Date(fecha).toLocaleDateString("es-AR");
+  };
+
+  const getInfoMantenimiento = (fecha) => {
+      if (!fecha) {
+        return {
+          color: "secondary",
+          icono: "⚪",
+          fecha: "-",
+          texto: "Sin mantenimiento",
+        };
+      }
+
+      const hoy = new Date();
+      const base = new Date(fecha + "T00:00:00");
+      const venc = new Date(base);
+      venc.setFullYear(venc.getFullYear() + 1);
+
+      const diff = Math.ceil((venc - hoy) / (1000 * 60 * 60 * 24));
+
+      let color = "success";
+      let icono = <i className="bi bi-check-circle-fill text-success me-1"></i>;
+      let texto = `Vence en ${diff} días`;
+
+      if (diff < 0) {
+        color = "danger";
+        icono = <i className="bi bi-exclamation-triangle-fill text-danger me-1"></i>;
+        texto = `Vencido hace ${Math.abs(diff)} días`;
+      } else if (diff <= 30) {
+        color = "warning";
+        icono = <i className="bi bi-clock-fill text-warning me-1"></i>;
+        texto = `Vence en ${diff} días`;
+      }
+
+      return {
+        color,
+        icono,
+        fecha: base.toLocaleDateString("es-AR"),
+        texto,
+      };
+    };
 
   return (
     <div className="card p-3 shadow-sm">
@@ -112,7 +169,7 @@ export default function InstrumentoList({ instrumentos = [], onNew, onEdit, onDe
               <th>Partida</th>
               <th>Descripción</th>
               <th>Cliente</th>
-              <th>Mantenimiento</th>
+              <th>Ult. Mant.</th>
               <th>Acciones</th>
             </tr>
           </thead>
@@ -129,6 +186,7 @@ export default function InstrumentoList({ instrumentos = [], onNew, onEdit, onDe
               ) : (
                     instrumentosPaginados.map((i) => {
               const estado = getEstado(i.fechaUltimoMantenimiento);
+              const info = getInfoMantenimiento(i.fechaUltimoMantenimiento);
 
               const color =
                 estado === "vencido"
@@ -141,31 +199,37 @@ export default function InstrumentoList({ instrumentos = [], onNew, onEdit, onDe
                 <tr key={i._id}>
                   <td>{i.numeroSerie}</td>
                   <td>{i.numeroPartida || "-"}</td>
-                  <td>{i.descripcion}</td>
-                  <td>{i.cliente?.nombre || "Sin cliente"}</td>
+                  <td className="col-descripcion">
+                    {i.descripcion}
+                  </td>
+                  <td className="col-cliente">
+                    <i className="me-1 text-primary"></i>
+                    {i.cliente?.nombre || "Sin cliente"}
+                  </td>
 
-                  <td className={color}>
-                    {i.fechaUltimoMantenimiento
-                      ? typeof i.fechaUltimoMantenimiento === "string"
-                        ? i.fechaUltimoMantenimiento
-                            .split("-")
-                            .reverse()
-                            .join("/")
-                        : new Date(
-                            i.fechaUltimoMantenimiento
-                          ).toLocaleDateString("es-AR")
-                      : "-"}
+                  <td>
+                    <div className={`text-${info.color}`}>
+                      <div className="fw-semibold">
+                        {info.icono} {info.fecha}
+                      </div>
+
+                      <small className="text-muted">
+                        {info.texto}
+                      </small>
+                    </div>
                   </td>
 
                   <td className="d-flex gap-1">
                     <button
                       className="btn btn-sm btn-outline-primary"
+                      title="Editar"
                       onClick={() => onEdit(i)}
                     >
                       <i className="bi bi-pencil-fill"></i>
                     </button>
                     <button
                       className="btn btn-sm btn-outline-danger"
+                      title="Eliminar"
                       onClick={() => {
                         setInstrumentoAEliminar(i);
                         setShowDeleteModal(true);

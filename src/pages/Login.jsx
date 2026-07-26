@@ -1,8 +1,7 @@
 import { useState } from "react";
+import "../styles/Login.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
-//const API_URL = "http://localhost:3000";
-//const API_URL = "https://sistemast.onrender.com";
 
 export default function Login({ onLogin }) {
   const [form, setForm] = useState({
@@ -12,6 +11,7 @@ export default function Login({ onLogin }) {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,9 +47,37 @@ export default function Login({ onLogin }) {
   };
 
   return (
-    <div className="container mt-5" style={{ maxWidth: 420 }}>
-      <div className="card shadow-sm p-4">
-        <h3 className="mb-3 text-center">🔐 Login</h3>
+    <div
+          className="min-vh-100 d-flex justify-content-center align-items-center"
+          style={{
+            background:
+              "linear-gradient(135deg,#0d6efd 0%,#0b5ed7 40%,#084298 100%)",
+          }}
+        >
+          <div
+              className="card border-0 shadow-lg login-card"
+              style={{
+                  width: "100%",
+                  maxWidth: "420px",
+                  borderRadius: "20px",
+              }}
+          >
+            <div className="text-center mb-4">
+
+        <i
+            className="bi bi-cpu-fill text-primary"
+            style={{ fontSize: 60 }}
+        ></i>
+
+        <h2 className="mt-3 mb-1">
+            Sistema ST
+        </h2>
+
+        <p className="text-muted mb-0">
+            Gestión de Instrumentos
+        </p>
+
+    </div>
 
         {error && (
           <div className="alert alert-danger py-2">
@@ -57,7 +85,7 @@ export default function Login({ onLogin }) {
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="card-body p-5">
           <input
             className="form-control my-2"
             placeholder="Email"
@@ -69,25 +97,60 @@ export default function Login({ onLogin }) {
             required
           />
 
-          <input
-            type="password"
-            className="form-control my-2"
-            placeholder="Password"
-            value={form.password}
-            onChange={(e) =>
-              setForm({ ...form, password: e.target.value })
-            }
-            required
-          />
+          <div className="input-group">
+
+            <input
+                type={showPassword ? "text" : "password"}
+                className="form-control"
+                value={form.password}
+                placeholder="********"
+                onChange={(e) =>
+                    setForm({ ...form, password: e.target.value })
+                }
+            />
+
+            <button
+                type="button"
+                className="btn btn-outline-secondary"
+                onClick={() => setShowPassword(!showPassword)}
+            >
+                <i
+                    className={`bi ${
+                        showPassword
+                            ? "bi-eye-slash"
+                            : "bi-eye"
+                    }`}
+                ></i>
+            </button>
+
+        </div>
 
           <button
-            className="btn btn-primary w-100 mt-2"
-            disabled={loading}
+              className="btn btn-primary w-100"
+              disabled={loading}
           >
-            {loading ? "Entrando..." : "Entrar"}
+              {loading ? (
+                  <>
+                      <span className="spinner-border spinner-border-sm me-2"></span>
+                      Ingresando...
+                  </>
+              ) : (
+                  <>
+                      <i className="bi bi-box-arrow-in-right me-2"></i>
+                      Ingresar
+                  </>
+              )}
           </button>
+          <div className="text-center mt-4">
+
+              <small className="text-muted">
+                  Sistema ST v2.0b
+              </small>
+
+          </div>
         </form>
       </div>
+      
     </div>
   );
 }
