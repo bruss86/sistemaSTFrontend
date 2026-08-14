@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import * as XLSX from "xlsx";
 
 export default function TareasList({
   tareas = [],
@@ -75,7 +76,6 @@ export default function TareasList({
 
         const texto = `
           ${getCliente(t)}
-          ${getInstrumento(t)}
           ${t.tarea}
           ${t.responsable || ""}
         `.toLowerCase();
@@ -122,24 +122,6 @@ export default function TareasList({
   // =========================
   // BADGES
   // =========================
-  const prioridadBadge = (p) => {
-    switch (p) {
-      case "Urgente":
-        return "bg-danger";
-
-      case "Alta":
-        return "bg-warning text-dark";
-
-      case "Media":
-        return "bg-primary";
-
-      case "Baja":
-        return "bg-secondary";
-
-      default:
-        return "bg-secondary";
-    }
-  };
 
   const estadoBadge = (e) => {
     switch (e) {
@@ -180,6 +162,96 @@ export default function TareasList({
   };
 
   // =========================
+  // EXPORTAR A EXCEL
+  // =========================
+  
+  const exportarExcel = () => {
+    const datos = filtradas.map((t) => ({
+      Fecha: t.fecha
+        ? typeof t.fecha === "string"
+          ? t.fecha.split("-").reverse().join("/")
+          : new Date(t.fecha).toLocaleDateString("es-AR")
+        : "—",
+
+      Cliente: getCliente(t),
+
+      Tarea: t.tarea || "—",
+
+      Estado: t.estado || "—",
+
+      Responsable: t.responsable || "—",
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(datos);
+
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(
+      workbook,
+      worksheet,
+      "Tareas"
+    );
+
+    XLSX.writeFile(
+      workbook,
+      "tareas.xlsx"
+    );
+  };
+
+  // =========================
+  // RENDER HELPERS
+  // =========================
+  const estadoIcono = (estado) => {
+    switch (estado) {
+      case "Pendiente":
+        return (
+          <i
+            className="bi bi-clock"
+            title="Pendiente"
+          />
+        );
+
+      case "En proceso":
+        return (
+          <i
+            className="bi bi-arrow-repeat"
+            title="En proceso"
+          />
+        );
+
+      case "Finalizada":
+        return (
+          <i
+            className="bi bi-check-circle-fill"
+            title="Finalizada"
+          />
+        );
+
+      case "Cancelada":
+        return (
+          <i
+            className="bi bi-x-circle-fill"
+            title="Cancelada"
+          />
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  const getIniciales = (nombre) => {
+      if (!nombre) return "—";
+
+      return nombre
+        .trim()
+        .split(/\s+/)
+        .map((parte) => parte[0])
+        .join("")
+        .toUpperCase();
+    };
+
+  // =========================
   // RENDER
   // =========================
   return (
@@ -202,12 +274,25 @@ export default function TareasList({
             setSearch(e.target.value)
           }
         />
-        <button
-          className="btn btn-success"
-          onClick={() => onNew?.()}
-        >
-          ➕ Nueva Tarea
-        </button>
+        <div className="d-flex gap-2">
+
+          <button
+            className="btn btn-outline-success"
+            onClick={exportarExcel}
+            disabled={filtradas.length === 0}
+          >
+            <i className="bi bi-file-earmark-excel"></i>
+            {" "}Exportar Excel
+          </button>
+
+          <button
+            className="btn btn-success"
+            onClick={() => onNew?.()}
+          >
+            ➕ Nueva Tarea
+          </button>
+
+        </div>
 
       </div>
 
@@ -319,8 +404,23 @@ export default function TareasList({
                 Cliente
               </th>
 
-              <th style={{ minWidth: 220 }}>
-                Instrumento
+              <th style={{ minWidth: 260 }}>
+                Tarea
+              </th>
+
+              <th className="text-center" style={{ width: 60 }}>
+                Estado
+              </th>
+
+              <th
+                className="text-center"
+                style={{
+                  width: 130,
+                  minWidth: 130,
+                  maxWidth: 130,
+                }}
+              >
+                Responsable
               </th>
 
               <th
@@ -328,18 +428,6 @@ export default function TareasList({
                 style={{ width: 120 }}
               >
                 Acciones
-              </th>
-
-              <th style={{ minWidth: 260 }}>
-                Tarea
-              </th>
-
-              <th>Prioridad</th>
-
-              <th>Estado</th>
-
-              <th style={{ minWidth: 160 }}>
-                Responsable
               </th>
 
             </tr>
@@ -350,7 +438,7 @@ export default function TareasList({
             {filtradas.length === 0 && (
               <tr>
                 <td
-                  colSpan="8"
+                  colSpan="6"
                   className="text-center text-muted py-5"
                 >
                   No hay tareas registradas
@@ -382,11 +470,36 @@ export default function TareasList({
                   <td>
                     {getCliente(t)}
                   </td>
-
-                  <td>
-                    {getInstrumento(t)}
-                  </td>
                   
+
+                  <td>{t.tarea}</td>
+
+                  <td className="text-center">
+                    <span
+                      title={t.estado}
+                      style={{ fontSize: "1.1rem" }}
+                    >
+                      {estadoIcono(t.estado)}
+                    </span>
+                  </td>
+
+                  <td className="text-center">
+                    {t.responsable ? (
+                      <span
+                        className="badge rounded-pill bg-primary"
+                        title={t.responsable}
+                        style={{
+                          minWidth: 36,
+                          fontSize: "0.8rem",
+                        }}
+                      >
+                        {getIniciales(t.responsable)}
+                      </span>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
+
                   <td className="text-center">
 
                     <div className="d-flex justify-content-center gap-1">
@@ -414,33 +527,6 @@ export default function TareasList({
                     </div>
 
                   </td>
-
-                  <td>{t.tarea}</td>
-
-                  <td>
-                    <span
-                      className={`badge rounded-pill ${prioridadBadge(
-                        t.prioridad
-                      )}`}
-                    >
-                      {t.prioridad}
-                    </span>
-                  </td>
-
-                  <td>
-                    <span
-                      className={`badge rounded-pill ${estadoBadge(
-                        t.estado
-                      )}`}
-                    >
-                      {t.estado}
-                    </span>
-                  </td>
-
-                  <td>
-                    {t.responsable || "—"}
-                  </td>
-
                   
 
                 </tr>

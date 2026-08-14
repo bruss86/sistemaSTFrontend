@@ -401,10 +401,25 @@ export default function TareaForm({
           }))
         }
       >
-        <option value="Vaccaro Sebastián">Vaccaro Sebastián</option>
-        <option value="Correas Gustavo">Correas Gustavo</option>
-        <option value="Orlandi Matías">Orlandi Matías</option>
-        <option value="Gerbaudo Leandro">Gerbaudo Leandro</option>
+        <option value="">
+          Seleccionar responsable
+        </option>
+
+        <option value="Vaccaro Sebastián">
+          Vaccaro Sebastián
+        </option>
+
+        <option value="Correas Gustavo">
+          Correas Gustavo
+        </option>
+
+        <option value="Orlandi Matías">
+          Orlandi Matías
+        </option>
+
+        <option value="Gerbaudo Leandro">
+          Gerbaudo Leandro
+        </option>
       </select>
 
         </div>
