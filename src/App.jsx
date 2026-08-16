@@ -10,6 +10,8 @@ import Modal from "./components/Modal";
 import Dashboard from "./components/Dashboard";
 import Login from "./pages/Login";
 import CasoList from "./components/CasosList";
+import MantenimientosList from "./components/MantenimientosList";
+import RegistrarMantenimientoModal from "./components/RegistrarMantenimientoModal";
 
 
 import ServiciosTercerosForm from "./components/ServiciosTercerosForm";
@@ -50,6 +52,9 @@ function App() {
   const [tareaEdit, setTareaEdit] = useState(null);
 
   const [casos, setCasos] = useState([]);
+
+  const [mantenimientoFiltro, setMantenimientoFiltro] = useState("todos");
+  const [mantenimientoEdit, setMantenimientoEdit] = useState(null);
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });
@@ -143,7 +148,13 @@ function App() {
 
       <div className="row g-3">
         <div className="col-md-3">
-          <Dashboard refresh={refresh} />
+          <Dashboard
+            refresh={refresh}
+            onNavigate={(vista, filtro = "todos") => {
+              setMantenimientoFiltro(filtro);
+              setView(vista);
+            }}
+          />
         </div>
 
         <div className="col-md-9">
@@ -240,6 +251,21 @@ function App() {
                 onRefresh={handleRefresh}
               />
             )}
+
+            {view === "mantenimientos" && (
+              <MantenimientosList
+                instrumentos={instrumentos}
+                filtroInicial={mantenimientoFiltro}
+                onEdit={(instrumento) => {
+                  setInstrumentoEdit(instrumento);
+                  setShowInstrumentoModal(true);
+                }}
+                onRegistrarMantenimiento={(instrumento) => {
+                  setMantenimientoEdit(instrumento);
+                }}
+              />
+            )}
+
           </div>
         </div>
       </div>
@@ -320,6 +346,24 @@ function App() {
               showToast("Tarea actualizada");
             }}
             onClose={() => setShowTareaModal(false)}
+          />
+        </Modal>
+      )}
+
+      {mantenimientoEdit && (
+        <Modal
+          onClose={() => setMantenimientoEdit(null)}
+        >
+          <RegistrarMantenimientoModal
+            instrumento={mantenimientoEdit}
+            onUpdated={() => {
+              setMantenimientoEdit(null);
+              handleRefresh();
+              showToast("Mantenimiento registrado");
+            }}
+            onClose={() => {
+              setMantenimientoEdit(null);
+            }}
           />
         </Modal>
       )}

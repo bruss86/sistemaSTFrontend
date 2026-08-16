@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 
 const API_URL = import.meta.env.VITE_API_URL;
-//const API_URL = "http://localhost:3000";
-//const API_URL = "https://sistemast.onrender.com";
 
 const initialState = {
   nombre: "",
   codigo: "",
+  fabricante: "",
+  modelo: "",
   descripcion: "",
   stock: 0,
   stockMinimo: 0,
@@ -30,6 +30,8 @@ export default function RepuestoForm({
       setForm({
         nombre: repuesto.nombre || "",
         codigo: repuesto.codigo || "",
+        fabricante: repuesto.fabricante || "",
+        modelo: repuesto.modelo || "",
         descripcion: repuesto.descripcion || "",
         stock: repuesto.stock ?? 0,
         stockMinimo: repuesto.stockMinimo ?? 0,
@@ -81,26 +83,24 @@ export default function RepuestoForm({
         body: JSON.stringify({
           ...form,
           stock: Number(form.stock) || 0,
-          stockMinimo: Number(form.stockMinimo) || 0,
+          stockMinimo:
+            Number(form.stockMinimo) || 0,
         }),
       });
 
       if (!res.ok) {
-        throw new Error("Error guardando repuesto");
+        throw new Error(
+          "Error guardando repuesto"
+        );
       }
 
       await res.json();
 
-      // ✅ refrescar lista
       onCreated?.();
-
-      // ✅ cerrar modal
       onClose?.();
 
-      // ✅ limpiar form
       setForm(initialState);
 
-      // ✅ toast / alerta
       alert(
         isEdit
           ? "Repuesto actualizado correctamente"
@@ -109,7 +109,9 @@ export default function RepuestoForm({
     } catch (err) {
       console.error(err);
 
-      alert("Ocurrió un error al guardar");
+      alert(
+        "Ocurrió un error al guardar"
+      );
     } finally {
       setLoading(false);
     }
@@ -117,112 +119,153 @@ export default function RepuestoForm({
 
   return (
     <form onSubmit={handleSubmit}>
-      <h5 className="mb-3">
-        {isEdit
-          ? "✏️ Editar Repuesto"
-          : "➕ Nuevo Repuesto"}
-      </h5>
 
-      {/* NOMBRE */}
-      <div className="mb-2">
-        <label className="form-label">
-          Nombre
-        </label>
+  <h5 className="mb-3">
+    {isEdit
+      ? "✏️ Editar Repuesto"
+      : "➕ Nuevo Repuesto"}
+  </h5>
 
-        <input
-          className="form-control"
-          name="nombre"
-          value={form.nombre}
-          onChange={handleChange}
-          required
-          autoFocus
-        />
-      </div>
+  {/* NOMBRE / CÓDIGO */}
+  <div className="row g-2">
 
-      {/* CÓDIGO */}
-      <div className="mb-2">
-        <label className="form-label">
-          Código
-        </label>
+    <div className="col-md-8">
+      <label className="form-label mb-1">
+        Nombre
+      </label>
 
-        <input
-          className="form-control"
-          name="codigo"
-          value={form.codigo}
-          onChange={handleChange}
-        />
-      </div>
+      <input
+        className="form-control"
+        name="nombre"
+        value={form.nombre}
+        onChange={handleChange}
+        required
+        autoFocus
+      />
+    </div>
 
-      {/* DESCRIPCIÓN */}
-      <div className="mb-2">
-        <label className="form-label">
-          Descripción
-        </label>
+    <div className="col-md-4">
+      <label className="form-label mb-1">
+        Código
+      </label>
 
-        <textarea
-          className="form-control"
-          name="descripcion"
-          rows={3}
-          value={form.descripcion}
-          onChange={handleChange}
-        />
-      </div>
+      <input
+        className="form-control"
+        name="codigo"
+        value={form.codigo}
+        onChange={handleChange}
+      />
+    </div>
 
-      {/* STOCK */}
-      <div className="mb-2">
-        <label className="form-label">
-          Stock
-        </label>
+  </div>
 
-        <input
-          type="number"
-          min="0"
-          className="form-control"
-          name="stock"
-          value={form.stock}
-          onChange={handleChange}
-        />
-      </div>
+  {/* FABRICANTE / MODELO */}
+  <div className="row g-2 mt-1">
 
-      {/* STOCK MÍNIMO */}
-      <div className="mb-3">
-        <label className="form-label">
-          Stock mínimo
-        </label>
+    <div className="col-md-6">
+      <label className="form-label mb-1">
+        Fabricante
+      </label>
 
-        <input
-          type="number"
-          min="0"
-          className="form-control"
-          name="stockMinimo"
-          value={form.stockMinimo}
-          onChange={handleChange}
-        />
-      </div>
+      <input
+        className="form-control"
+        name="fabricante"
+        value={form.fabricante}
+        onChange={handleChange}
+      />
+    </div>
 
-      {/* BOTONES */}
-      <div className="d-flex gap-2">
-        <button
-          type="submit"
-          className="btn btn-primary w-100"
-          disabled={loading}
-        >
-          {loading
-            ? "Guardando..."
-            : isEdit
-            ? "Actualizar"
-            : "Guardar"}
-        </button>
+    <div className="col-md-6">
+      <label className="form-label mb-1">
+        Modelo
+      </label>
 
-        <button
-          type="button"
-          className="btn btn-secondary"
-          onClick={onClose}
-          disabled={loading}
-        >
-          Cancelar
-        </button>
-      </div>
-    </form>
+      <input
+        className="form-control"
+        name="modelo"
+        value={form.modelo}
+        onChange={handleChange}
+      />
+    </div>
+
+  </div>
+
+  {/* STOCK */}
+  <div className="row g-2 mt-1">
+
+    <div className="col-md-6">
+      <label className="form-label mb-1">
+        Stock
+      </label>
+
+      <input
+        type="number"
+        min="0"
+        className="form-control"
+        name="stock"
+        value={form.stock}
+        onChange={handleChange}
+      />
+    </div>
+
+    <div className="col-md-6">
+      <label className="form-label mb-1">
+        Stock mínimo
+      </label>
+
+      <input
+        type="number"
+        min="0"
+        className="form-control"
+        name="stockMinimo"
+        value={form.stockMinimo}
+        onChange={handleChange}
+      />
+    </div>
+
+  </div>
+
+  {/* DESCRIPCIÓN */}
+  <div className="mt-2">
+    <label className="form-label mb-1">
+      Descripción
+    </label>
+
+    <textarea
+      className="form-control"
+      name="descripcion"
+      rows={2}
+      value={form.descripcion}
+      onChange={handleChange}
+    />
+  </div>
+
+  {/* BOTONES */}
+  <div className="d-flex gap-2 mt-3">
+
+    <button
+      type="submit"
+      className="btn btn-primary w-100"
+      disabled={loading}
+    >
+      {loading
+        ? "Guardando..."
+        : isEdit
+        ? "Actualizar"
+        : "Guardar"}
+    </button>
+
+    <button
+      type="button"
+      className="btn btn-secondary"
+      onClick={onClose}
+      disabled={loading}
+    >
+      Cancelar
+    </button>
+
+  </div>
+
+</form>
   );
 }
