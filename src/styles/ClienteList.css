@@ -1,5 +1,21 @@
+/* ClienteList.css */
+
 .col-cliente {
-    max-width: 100px;
-    white-space: normal;
-    word-break: break-word;
+  width: 40%;
+}
+
+.col-codigo {
+  width: 20%;
+}
+
+.col-estado {
+  width: 15%;
+}
+
+.col-instrumentos {
+  width: 10%;
+}
+
+.col-acciones {
+  width: 15%;
 }

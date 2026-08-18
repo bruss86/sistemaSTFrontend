@@ -1049,8 +1049,9 @@ export default function RepuestosList({
               {}
             )
           }
+          title="Nuevo repuesto"
         >
-          ➕ Nuevo
+          <i class="bi bi-plus-circle"></i> Nuevo
         </button>
 
         {/* IMPORTAR */}
@@ -1065,8 +1066,11 @@ export default function RepuestosList({
           onClick={() =>
             fileInputRef.current?.click()
           }
+          title="Importar desde archivo XLSX"
+
+
         >
-          📥 Importar
+          <i class="bi bi-box-arrow-in-down"></i> Importar
         </button>
 
         {/* EXPORTAR */}
@@ -1081,8 +1085,9 @@ export default function RepuestosList({
           onClick={
             exportLowStock
           }
+          title="Exportar a archivo XLSX"
         >
-          📊 Exportar
+          <i class="bi bi-box-arrow-up"></i> Exportar
         </button>
 
       </div>
@@ -1197,7 +1202,7 @@ export default function RepuestosList({
       <div className="d-flex align-items-center gap-3 mb-3 flex-wrap">
 
         <span className="text-muted small">
-          📦{" "}
+          <i class="bi bi-gear-fill"></i>{" "}
           <strong>
             {stockSummary.total}
           </strong>{" "}
@@ -1461,7 +1466,7 @@ export default function RepuestosList({
                           )
                         }
                       >
-                        ✏️
+                        <i class="bi bi-pencil-square"></i>
                       </button>
 
                       <button
@@ -1481,7 +1486,7 @@ export default function RepuestosList({
                         {loadingDelete ===
                         r._id
                           ? "..."
-                          : "🗑️"}
+                          : <i class="bi bi-trash3-fill"></i>}
                       </button>
 
                     </td>
