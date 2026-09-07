@@ -64,10 +64,15 @@ export default function Login({ onLogin }) {
           >
             <div className="text-center mb-4">
 
-        <i
-            className="bi bi-gear-wide-connected text-primary"
-            style={{ fontSize: 60 }}
-        ></i>
+            <img
+              src="/favicon.png"
+              alt="Sistema ST"
+              style={{
+                width: 80,
+                height: 80,
+                objectFit: "contain",
+              }}
+            />
 
         <h2 className="mt-3 mb-1">
             Sistema ST
