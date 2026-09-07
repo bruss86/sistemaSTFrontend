@@ -56,6 +56,8 @@ function App() {
   const [mantenimientoFiltro, setMantenimientoFiltro] = useState("todos");
   const [mantenimientoEdit, setMantenimientoEdit] = useState(null);
 
+  const [loading, setLoading] = useState(false);
+
   const showToast = (message, type = "success") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 2500);
@@ -79,6 +81,8 @@ function App() {
   const fetchAll = useCallback(async () => {
     if (!auth) return;
 
+    setLoading(true);
+
     try {
     const headers = getHeaders();
 
@@ -97,9 +101,12 @@ function App() {
     setRepuestos(rep || []);
     setTareas(tar || []);
     setCasos(cas || []);
+
   } catch (error) {
     console.error("Error al cargar datos:", error);
     showToast("Error al cargar datos", "error");
+  } finally {
+    setLoading(false);
   }
   }, [auth]);
 
@@ -125,6 +132,21 @@ function App() {
 
   if (!auth) {
     return <Login onLogin={() => setAuth(true)} />;
+  }
+
+  if (loading && instrumentos.length === 0) {
+    return (
+      <div className="d-flex justify-content-center align-items-center vh-100">
+        <div className="text-center">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Cargando...</span>
+          </div>
+          <div className="mt-2 text-muted">
+            Cargando sistema...
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const handleNewTarea = () => {
@@ -158,6 +180,19 @@ function App() {
         </div>
 
         <div className="col-md-9">
+          {loading && (
+            <div className="text-center py-2">
+              <div
+                className="spinner-border spinner-border-sm text-primary"
+                role="status"
+              >
+                <span className="visually-hidden">Actualizando...</span>
+              </div>
+              <span className="ms-2 text-muted small">
+                Actualizando...
+              </span>
+            </div>
+          )}
           <div className="card p-3 shadow-sm">
 
             {view === "instrumentos" && (

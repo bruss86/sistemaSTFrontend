@@ -6,6 +6,7 @@ import {
 } from "../api/api";
 
 const initialForm = {
+  codigo: "",
   numeroSerie: "",
   numeroPartida: "",
   descripcion: "",
@@ -26,14 +27,15 @@ export default function InstrumentoForm({
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  // Cliente
   const [clienteSearch, setClienteSearch] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   const isEdit = Boolean(instrumento?._id);
+  const mantenimientoRegistrado =
+    Boolean(form.fechaUltimoMantenimiento);
 
   // ======================================================
-  // CLIENTES
+  // CARGAR CLIENTES
   // ======================================================
 
   useEffect(() => {
@@ -50,14 +52,13 @@ export default function InstrumentoForm({
   }, []);
 
   // ======================================================
-  // CARGAR FORMULARIO
+  // CARGAR / RESET FORMULARIO
   // ======================================================
 
   useEffect(() => {
     if (instrumento) {
-      setClienteSearch(instrumento.cliente?.nombre || "");
-
       setForm({
+        codigo: instrumento.codigo || "",
         numeroSerie: instrumento.numeroSerie || "",
         numeroPartida: instrumento.numeroPartida || "",
         descripcion: instrumento.descripcion || "",
@@ -66,6 +67,10 @@ export default function InstrumentoForm({
         fechaUltimoMantenimiento:
           instrumento.fechaUltimoMantenimiento?.slice(0, 10) || "",
       });
+
+      setClienteSearch(
+        instrumento.cliente?.nombre || ""
+      );
     } else {
       setForm(initialForm);
       setClienteSearch("");
@@ -78,11 +83,13 @@ export default function InstrumentoForm({
   // CLIENTES FILTRADOS
   // ======================================================
 
-  const clientesFiltrados = clientes.filter((c) =>
-    c.nombre
-      .toLowerCase()
-      .includes(clienteSearch.toLowerCase())
-  );
+  const clientesFiltrados = clientes
+    .filter((c) =>
+      c.nombre
+        ?.toLowerCase()
+        .includes(clienteSearch.toLowerCase())
+    )
+    .slice(0, 8);
 
   // ======================================================
   // CAMBIOS
@@ -105,8 +112,18 @@ export default function InstrumentoForm({
   };
 
   // ======================================================
-  // LIMPIAR CLIENTE
+  // CLIENTE
   // ======================================================
+
+  const seleccionarCliente = (cliente) => {
+    setForm((prev) => ({
+      ...prev,
+      cliente: cliente._id,
+    }));
+
+    setClienteSearch(cliente.nombre);
+    setShowSuggestions(false);
+  };
 
   const limpiarCliente = () => {
     setClienteSearch("");
@@ -117,8 +134,21 @@ export default function InstrumentoForm({
     }));
   };
 
+  const handleClienteChange = (e) => {
+    const value = e.target.value;
+
+    setClienteSearch(value);
+    setShowSuggestions(true);
+
+    // Al modificar el texto, deja de estar seleccionado
+    setForm((prev) => ({
+      ...prev,
+      cliente: "",
+    }));
+  };
+
   // ======================================================
-  // SIN MANTENIMIENTO
+  // MANTENIMIENTO
   // ======================================================
 
   const marcarSinMantenimiento = () => {
@@ -141,6 +171,11 @@ export default function InstrumentoForm({
 
     if (!form.descripcion.trim()) {
       e.descripcion = "Obligatorio";
+    }
+
+    // Si hay texto de cliente pero no se seleccionó
+    if (clienteSearch.trim() && !form.cliente) {
+      e.cliente = "Seleccione un cliente de la lista";
     }
 
     return e;
@@ -166,10 +201,11 @@ export default function InstrumentoForm({
       setLoading(true);
 
       const payload = {
-        numeroSerie: form.numeroSerie?.trim(),
+        codigo: form.codigo.trim(),
+        numeroSerie: form.numeroSerie.trim(),
         numeroPartida:
-          form.numeroPartida?.trim() || null,
-        descripcion: form.descripcion?.trim(),
+          form.numeroPartida.trim() || null,
+        descripcion: form.descripcion.trim(),
         condicion: form.condicion || null,
         cliente: form.cliente || null,
         fechaUltimoMantenimiento:
@@ -195,6 +231,7 @@ export default function InstrumentoForm({
       setForm(initialForm);
       setClienteSearch("");
       setErrors({});
+
     } catch (err) {
       setErrors({
         general:
@@ -208,13 +245,6 @@ export default function InstrumentoForm({
   };
 
   // ======================================================
-  // ESTADO DEL MANTENIMIENTO
-  // ======================================================
-
-  const mantenimientoRegistrado =
-    Boolean(form.fechaUltimoMantenimiento);
-
-  // ======================================================
   // RENDER
   // ======================================================
 
@@ -225,7 +255,7 @@ export default function InstrumentoForm({
     >
       {/* TÍTULO */}
 
-      <h5 className="mb-3">
+      <h5 className="mb-2">
         {isEdit
           ? "✏️ Editar Instrumento"
           : "🧰 Nuevo Instrumento"}
@@ -234,42 +264,46 @@ export default function InstrumentoForm({
       {/* ERROR GENERAL */}
 
       {errors.general && (
-        <div className="alert alert-danger py-2 mb-2">
+        <div className="alert alert-danger py-1 px-2 mb-2 small">
           {errors.general}
         </div>
       )}
 
       {/* ==================================================
-          SERIE + PARTIDA
+          CÓDIGO + SERIE + PARTIDA
       ================================================== */}
 
       <div className="row g-2 mb-2">
 
-        <div className="col-md-6">
+        <div className="col-md-4">
+          <div className="form-floating">
+            <input
+              className="form-control"
+              name="codigo"
+              placeholder="Código"
+              value={form.codigo}
+              onChange={handleChange}
+            />
+            <label>Código</label>
+          </div>
+        </div>
+
+        <div className="col-md-4">
           <div className="form-floating">
             <input
               className={`form-control ${
-                errors.numeroSerie
-                  ? "is-invalid"
-                  : ""
+                errors.numeroSerie ? "is-invalid" : ""
               }`}
               name="numeroSerie"
               placeholder="Número de Serie"
               value={form.numeroSerie}
               onChange={handleChange}
             />
-
-            <label>Número de Serie</label>
+            <label>Serie</label>
           </div>
-
-          {errors.numeroSerie && (
-            <div className="text-danger small mt-1">
-              {errors.numeroSerie}
-            </div>
-          )}
         </div>
 
-        <div className="col-md-6">
+        <div className="col-md-4">
           <div className="form-floating">
             <input
               className="form-control"
@@ -278,8 +312,7 @@ export default function InstrumentoForm({
               value={form.numeroPartida}
               onChange={handleChange}
             />
-
-            <label>Número de Partida</label>
+            <label>Partida</label>
           </div>
         </div>
 
@@ -295,24 +328,15 @@ export default function InstrumentoForm({
           <div className="form-floating">
             <input
               className={`form-control ${
-                errors.descripcion
-                  ? "is-invalid"
-                  : ""
+                errors.descripcion ? "is-invalid" : ""
               }`}
               name="descripcion"
               placeholder="Descripción"
               value={form.descripcion}
               onChange={handleChange}
             />
-
-            <label>Descripción</label>
+            <label>Descripción *</label>
           </div>
-
-          {errors.descripcion && (
-            <div className="text-danger small mt-1">
-              {errors.descripcion}
-            </div>
-          )}
         </div>
 
         <div className="col-md-4">
@@ -323,21 +347,11 @@ export default function InstrumentoForm({
               value={form.condicion}
               onChange={handleChange}
             >
-              <option value="">
-                Seleccionar
-              </option>
-              <option value="Comodato">
-                Comodato
-              </option>
-              <option value="Propio">
-                Propio
-              </option>
-              <option value="Prestado">
-                Prestado
-              </option>
-              <option value="Alquilado">
-                Alquilado
-              </option>
+              <option value="">Seleccionar</option>
+              <option value="Comodato">Comodato</option>
+              <option value="Propio">Propio</option>
+              <option value="Prestado">Prestado</option>
+              <option value="Alquilado">Alquilado</option>
             </select>
 
             <label>Condición</label>
@@ -357,25 +371,20 @@ export default function InstrumentoForm({
           <div className="form-floating flex-grow-1">
 
             <input
-              className="form-control"
+              className={`form-control ${
+                errors.cliente ? "is-invalid" : ""
+              }`}
               placeholder="Cliente"
               value={clienteSearch}
-              onChange={(e) => {
-                setClienteSearch(e.target.value);
-                setShowSuggestions(true);
-
-                setForm((prev) => ({
-                  ...prev,
-                  cliente: "",
-                }));
+              onChange={handleClienteChange}
+              onFocus={() => {
+                if (clienteSearch) {
+                  setShowSuggestions(true);
+                }
               }}
-              onFocus={() =>
-                setShowSuggestions(true)
-              }
               onBlur={() => {
                 setTimeout(
-                  () =>
-                    setShowSuggestions(false),
+                  () => setShowSuggestions(false),
                   200
                 );
               }}
@@ -388,7 +397,7 @@ export default function InstrumentoForm({
           {clienteSearch && (
             <button
               type="button"
-              className="btn btn-outline-secondary"
+              className="btn btn-outline-secondary px-3"
               onClick={limpiarCliente}
               title="Quitar cliente"
             >
@@ -398,44 +407,39 @@ export default function InstrumentoForm({
 
         </div>
 
+        {errors.cliente && (
+          <div className="text-danger small mt-1">
+            {errors.cliente}
+          </div>
+        )}
+
         {/* SUGERENCIAS */}
 
-        {showSuggestions &&
-          clienteSearch && (
-            <ul className="list-group position-absolute w-100 z-3 shadow-sm">
-
-              {clientesFiltrados.length > 0 ? (
-                clientesFiltrados.map((c) => (
-                  <li
-                    key={c._id}
-                    className="list-group-item list-group-item-action py-2"
-                    style={{
-                      cursor: "pointer",
-                    }}
-                    onMouseDown={() => {
-                      setForm((prev) => ({
-                        ...prev,
-                        cliente: c._id,
-                      }));
-
-                      setClienteSearch(
-                        c.nombre
-                      );
-
-                      setShowSuggestions(false);
-                    }}
-                  >
-                    {c.nombre}
-                  </li>
-                ))
-              ) : (
-                <li className="list-group-item text-muted py-2">
-                  Sin resultados
+        {showSuggestions && clienteSearch && (
+          <ul
+            className="list-group position-absolute w-100 z-3 shadow-sm"
+            style={{ maxHeight: "220px", overflowY: "auto" }}
+          >
+            {clientesFiltrados.length > 0 ? (
+              clientesFiltrados.map((c) => (
+                <li
+                  key={c._id}
+                  className="list-group-item list-group-item-action py-2"
+                  style={{ cursor: "pointer" }}
+                  onMouseDown={() =>
+                    seleccionarCliente(c)
+                  }
+                >
+                  {c.nombre}
                 </li>
-              )}
-
-            </ul>
-          )}
+              ))
+            ) : (
+              <li className="list-group-item text-muted py-2">
+                Sin resultados
+              </li>
+            )}
+          </ul>
+        )}
 
       </div>
 
@@ -443,7 +447,7 @@ export default function InstrumentoForm({
           MANTENIMIENTO
       ================================================== */}
 
-      <div className="row g-2 align-items-center mb-2">
+      <div className="row g-2 mb-2">
 
         <div className="col-md-7">
 
@@ -453,15 +457,11 @@ export default function InstrumentoForm({
               type="date"
               className="form-control"
               name="fechaUltimoMantenimiento"
-              value={
-                form.fechaUltimoMantenimiento
-              }
+              value={form.fechaUltimoMantenimiento}
               onChange={handleChange}
             />
 
-            <label>
-              Fecha último mantenimiento
-            </label>
+            <label>Último mantenimiento</label>
 
           </div>
 
@@ -469,38 +469,46 @@ export default function InstrumentoForm({
 
         <div className="col-md-5">
 
-          {mantenimientoRegistrado ? (
-            <div className="d-flex align-items-center justify-content-between border rounded px-2 py-2">
+          <div
+            className={`h-100 d-flex align-items-center justify-content-between border rounded px-2 ${
+              mantenimientoRegistrado
+                ? "border-success"
+                : ""
+            }`}
+          >
 
-              <span className="text-success small">
-                <i className="bi bi-check-circle-fill me-1"></i>
-                Mantenimiento registrado
-              </span>
+            <span
+              className={
+                mantenimientoRegistrado
+                  ? "text-success small"
+                  : "text-secondary small"
+              }
+            >
+              <i
+                className={`bi ${
+                  mantenimientoRegistrado
+                    ? "bi-check-circle-fill"
+                    : "bi-circle"
+                } me-1`}
+              ></i>
 
+              {mantenimientoRegistrado
+                ? "Mantenimiento registrado"
+                : "Sin mantenimiento"}
+            </span>
+
+            {mantenimientoRegistrado && (
               <button
                 type="button"
-                className="btn btn-sm btn-outline-secondary"
+                className="btn btn-sm btn-outline-secondary py-0 px-2"
                 onClick={marcarSinMantenimiento}
                 title="Quitar mantenimiento"
               >
                 <i className="bi bi-x-lg"></i>
               </button>
+            )}
 
-            </div>
-          ) : (
-            <div className="d-flex align-items-center justify-content-between border rounded px-2 py-2">
-
-              <span className="text-secondary small">
-                <i className="bi bi-circle me-1"></i>
-                Sin mantenimiento
-              </span>
-
-              <span className="badge bg-secondary">
-                Sin fecha
-              </span>
-
-            </div>
-          )}
+          </div>
 
         </div>
 
@@ -510,33 +518,31 @@ export default function InstrumentoForm({
           BOTONES
       ================================================== */}
 
-      <div className="d-flex gap-2 mt-2">
+      <div className="d-flex gap-2 mt-1">
 
         <button
           type="submit"
           className={`btn ${
-            isEdit
-              ? "btn-warning"
-              : "btn-success"
+            isEdit ? "btn-warning" : "btn-success"
           } flex-fill`}
           disabled={loading}
         >
           {loading ? (
             <>
-              <span
-                className="spinner-border spinner-border-sm me-1"
-              ></span>
+              <span className="spinner-border spinner-border-sm me-1" />
               Guardando...
-            </>
-          ) : isEdit ? (
-            <>
-              <i className="bi bi-check-lg me-1"></i>
-              Actualizar
             </>
           ) : (
             <>
-              <i className="bi bi-plus-lg me-1"></i>
-              Crear
+              <i
+                className={`bi ${
+                  isEdit
+                    ? "bi-check-lg"
+                    : "bi-plus-lg"
+                } me-1`}
+              ></i>
+
+              {isEdit ? "Actualizar" : "Crear"}
             </>
           )}
         </button>
@@ -552,7 +558,6 @@ export default function InstrumentoForm({
         </button>
 
       </div>
-
     </form>
   );
 }

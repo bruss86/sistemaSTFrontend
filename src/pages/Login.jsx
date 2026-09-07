@@ -65,7 +65,7 @@ export default function Login({ onLogin }) {
             <div className="text-center mb-4">
 
         <i
-            className="bi bi-cpu-fill text-primary"
+            className="bi bi-gear-wide-connected text-primary"
             style={{ fontSize: 60 }}
         ></i>
 
@@ -144,7 +144,7 @@ export default function Login({ onLogin }) {
           <div className="text-center mt-4">
 
               <small className="text-muted">
-                  Sistema ST v2.3b (Agosto 2026)
+                  Sistema ST v2.4b (Septiembre 2026)
               </small>
 
           </div>
