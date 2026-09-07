@@ -71,6 +71,8 @@ export default function Login({ onLogin }) {
                 width: 80,
                 height: 80,
                 objectFit: "contain",
+                borderRadius: "18px",
+                marginTop: "15px",
               }}
             />
 
