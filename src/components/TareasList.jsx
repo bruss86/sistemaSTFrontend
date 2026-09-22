@@ -405,7 +405,7 @@ export default function TareasList({
               </th>
 
               <th style={{ minWidth: 260 }}>
-                Tarea
+                Instrumento
               </th>
 
               <th className="text-center" style={{ width: 60 }}>
@@ -470,9 +470,26 @@ export default function TareasList({
                   <td>
                     {getCliente(t)}
                   </td>
-                  
 
-                  <td>{t.tarea}</td>
+                  <td>
+                    {t.instrumento ? (
+                      typeof t.instrumento === "object" ? (
+                        <>
+                          <div className="fw-semibold">
+                            {t.instrumento.descripcion || "Sin descripción"}
+                          </div>
+
+                          <small className="text-muted">
+                            SN: {t.instrumento.numeroSerie || "—"}
+                          </small>
+                        </>
+                      ) : (
+                        t.instrumento
+                      )
+                    ) : (
+                      <span className="text-muted">Sin instrumento</span>
+                    )}
+                  </td>
 
                   <td className="text-center">
                     <span

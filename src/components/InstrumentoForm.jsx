@@ -13,6 +13,7 @@ const initialForm = {
   condicion: "",
   cliente: "",
   fechaUltimoMantenimiento: "",
+  notas: "",
 };
 
 export default function InstrumentoForm({
@@ -66,6 +67,7 @@ export default function InstrumentoForm({
         cliente: instrumento.cliente?._id || "",
         fechaUltimoMantenimiento:
           instrumento.fechaUltimoMantenimiento?.slice(0, 10) || "",
+        notas: instrumento.notas || "",
       });
 
       setClienteSearch(
@@ -210,6 +212,7 @@ export default function InstrumentoForm({
         cliente: form.cliente || null,
         fechaUltimoMantenimiento:
           form.fechaUltimoMantenimiento || null,
+        notas: form.notas || null,
       };
 
       if (isEdit) {
@@ -440,6 +443,25 @@ export default function InstrumentoForm({
             )}
           </ul>
         )}
+
+      </div>
+
+      {/* ==================================================
+          NOTAS
+      ================================================== */}
+
+      <div className="form-floating mb-2">
+
+        <textarea
+          className="form-control"
+          placeholder="Notas"
+          name="notas"
+          value={form.notas}
+          onChange={handleChange}
+          style={{ height: "70px", resize: "none" }}
+        />
+
+        <label>Notas</label>
 
       </div>
 
