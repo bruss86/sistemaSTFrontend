@@ -151,7 +151,7 @@ export default function Login({ onLogin }) {
           <div className="text-center mt-4">
 
               <small className="text-muted">
-                  Sistema ST v2.5b (Septiembre 2026)
+                  Sistema ST v2.6b (Octubre 2026)
               </small>
 
           </div>

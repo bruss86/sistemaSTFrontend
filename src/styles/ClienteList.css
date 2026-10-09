@@ -19,3 +19,25 @@
 .col-acciones {
   width: 15%;
 }
+
+/* Ajustes de la tabla */
+.instrumentos-scroll table {
+  margin-bottom: 0;
+}
+
+.instrumentos-scroll td,
+.instrumentos-scroll th {
+  vertical-align: middle;
+}
+
+/* Adaptación para pantallas pequeñas */
+@media (max-width: 576px) {
+  .instrumentos-scroll {
+    max-height: 260px;
+  }
+
+  .cliente-instrumentos {
+    max-width: 100%;
+    min-width: 0;
+  }
+}
