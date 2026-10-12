@@ -437,6 +437,11 @@ export default function ClienteList({
                 setShowForm(false);
                 setClienteEditando(null);
               }}
+              // 👈 AGREGAR ESTA LÍNEA AQUÍ:
+              onClose={() => {
+                setShowForm(false);
+                setClienteEditando(null);
+              }}
             />
           </Modal>
         )}

@@ -14,7 +14,6 @@ export default function RegistrarMantenimientoModal({
     if (instrumento) {
       const hoy = new Date();
       const fechaHoy = hoy.toISOString().slice(0, 10);
-
       setFecha(fechaHoy);
     }
   }, [instrumento]);
@@ -68,38 +67,39 @@ export default function RegistrarMantenimientoModal({
   };
 
   return (
-    <div className="card border-0">
+    <div className="card border-0 bg-transparent">
+      <div className="card-body p-2">
 
-      <div className="card-body">
-
-        <h4 className="mb-3">
-          🔧 Registrar mantenimiento
+        <h4 className="mb-3 fw-bold text-dark">
+          🔧 Registrar Mantenimiento
         </h4>
 
-        <div className="mb-3">
-          <div className="fw-semibold">
+        {/* INFORMACIÓN DEL INSTRUMENTO */}
+        <div className="bg-light p-3 rounded-3 mb-3 border">
+          <div className="fw-semibold text-dark">
             {instrumento.descripcion}
           </div>
 
           {instrumento.numeroSerie && (
-            <div className="small text-muted">
-              S/N: {instrumento.numeroSerie}
+            <div className="small text-muted mt-1">
+              <i className="bi bi-upc-scan me-1"></i> S/N: {instrumento.numeroSerie}
             </div>
           )}
 
           {instrumento.cliente?.nombre && (
             <div className="small text-muted mt-1">
-              Cliente: {instrumento.cliente.nombre}
+              <i className="bi bi-building me-1"></i> Cliente: {instrumento.cliente.nombre}
             </div>
           )}
         </div>
 
         {error && (
-          <div className="alert alert-danger py-2">
-            {error}
+          <div className="alert alert-danger py-2 px-3 small shadow-sm mb-3">
+            <i className="bi bi-exclamation-triangle-fill me-1"></i> {error}
           </div>
         )}
 
+        {/* CAMPO FECHA */}
         <div className="form-floating mb-3">
           <input
             type="date"
@@ -108,38 +108,41 @@ export default function RegistrarMantenimientoModal({
             value={fecha}
             onChange={(e) => setFecha(e.target.value)}
           />
-
           <label htmlFor="fechaMantenimiento">
             Fecha del mantenimiento
           </label>
         </div>
 
+        {/* PRÓXIMO MANTENIMIENTO ESTIMADO */}
         {fecha && (
-          <div className="alert alert-light border mb-3">
-            <div className="small text-muted">
-              Próximo mantenimiento
+          <div className="alert alert-success bg-success bg-opacity-10 border border-success border-opacity-25 mb-4 rounded-3 py-2 px-3 d-flex justify-content-between align-items-center">
+            <div>
+              <div className="small text-success fw-semibold">
+                Próximo mantenimiento estimado:
+              </div>
+              <div className="fw-bold text-success fs-6">
+                {calcularProximo()}
+              </div>
             </div>
-
-            <div className="fw-semibold">
-              {calcularProximo()}
-            </div>
+            <i className="bi bi-calendar-check text-success fs-4"></i>
           </div>
         )}
 
-        <div className="d-flex gap-2">
-
+        {/* BOTONES */}
+        <div className="d-flex gap-2 pt-2 border-top">
           <button
             type="button"
-            className="btn btn-secondary flex-fill"
+            className="btn btn-secondary flex-fill py-2 fw-semibold shadow-sm"
             onClick={onClose}
             disabled={loading}
           >
+            <i className="bi bi-x-lg me-1"></i>
             Cancelar
           </button>
 
           <button
             type="submit"
-            className="btn btn-success flex-fill"
+            className="btn btn-success flex-fill py-2 fw-semibold shadow-sm"
             onClick={handleSubmit}
             disabled={loading}
           >
@@ -153,15 +156,13 @@ export default function RegistrarMantenimientoModal({
               </>
             ) : (
               <>
-                🔧 Registrar
+                <i className="bi bi-check-lg me-1"></i> Registrar
               </>
             )}
           </button>
-
         </div>
 
       </div>
-
     </div>
   );
 }

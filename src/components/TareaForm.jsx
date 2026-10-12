@@ -17,23 +17,19 @@ export default function TareaForm({
   clientes = [],
   tareaEdit,
   onCreated,
-  onClose,
+  onClose = () => {},
   showToast,
 }) {
   const [form, setForm] = useState(initialState);
   const [loading, setLoading] = useState(false);
 
   const [clienteSearch, setClienteSearch] = useState("");
-  const [showClienteDropdown, setShowClienteDropdown] =
-    useState(false);
+  const [showClienteDropdown, setShowClienteDropdown] = useState(false);
 
-  const [instrumentosCliente, setInstrumentosCliente] =
-    useState([]);
-
+  const [instrumentosCliente, setInstrumentosCliente] = useState([]);
   const [error, setError] = useState("");
 
   const clienteRef = useRef(null);
-
   const token = localStorage.getItem("token");
 
   // =========================
@@ -50,12 +46,8 @@ export default function TareaForm({
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-
     return () => {
-      document.removeEventListener(
-        "mousedown",
-        handleClickOutside
-      );
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -83,9 +75,7 @@ export default function TareaForm({
       cliente: cliente?._id || "",
       instrumento: instrumentoId || "",
       tarea: tareaEdit.tarea || "",
-      fecha: tareaEdit.fecha
-        ? tareaEdit.fecha.substring(0, 10)
-        : "",
+      fecha: tareaEdit.fecha ? tareaEdit.fecha.substring(0, 10) : "",
       prioridad: tareaEdit.prioridad || "Media",
       estado: tareaEdit.estado || "Pendiente",
       responsable: tareaEdit.responsable || "",
@@ -115,11 +105,9 @@ export default function TareaForm({
           }
         );
 
-        if (!res.ok)
-          throw new Error("Error cargando instrumentos");
+        if (!res.ok) throw new Error("Error cargando instrumentos");
 
         const data = await res.json();
-
         setInstrumentosCliente(data);
       } catch (err) {
         console.error(err);
@@ -133,32 +121,16 @@ export default function TareaForm({
   // FILTRADO CLIENTES
   // =========================
   const filteredClientes = clientes.filter((c) =>
-    c.nombre
-      .toLowerCase()
-      .includes(clienteSearch.toLowerCase())
+    c.nombre.toLowerCase().includes(clienteSearch.toLowerCase())
   );
 
-  // =========================
-  // VALIDACIÓN
-  // =========================
-  /*const isValid =
-    form.tarea.trim() &&
-    form.cliente &&
-    form.instrumento &&
-    form.fecha;*/
-  
-  const isValid =
-    form.tarea.trim() &&
-    form.fecha;
-
-  
+  const isValid = form.tarea.trim() && form.fecha;
 
   // =========================
   // SUBMIT
   // =========================
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!isValid || loading) return;
 
     setError("");
@@ -187,13 +159,12 @@ export default function TareaForm({
         body: JSON.stringify(data),
       });
 
-       const response = await res.json();
+      const response = await res.json();
 
       if (!res.ok) {
-        throw new Error(
-          response.error || "Error al guardar tarea"
-        );
+        throw new Error(response.error || "Error al guardar tarea");
       }
+
       setError("");
       showToast?.(
         tareaEdit
@@ -209,266 +180,280 @@ export default function TareaForm({
       onClose?.();
     } catch (err) {
       console.error(err);
-
       setError(err.message || "No se pudo guardar la tarea.");
-
-      // showToast?.(err.message, "danger");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h5 className="mb-3">
-        {tareaEdit
-          ? "✏️ Editar Tarea"
-          : "➕ Nueva Tarea"}
-      </h5>
+    <form onSubmit={handleSubmit} className="p-2">
+      <h4 className="mb-3 fw-bold text-dark">
+        {tareaEdit ? "✏️ Editar Tarea" : "➕ Nueva Tarea"}
+      </h4>
 
-      <div className="row">
+      {error && (
+        <div className="alert alert-danger py-2 px-3 small shadow-sm mb-3" role="alert">
+          <i className="bi bi-exclamation-triangle-fill me-1"></i> {error}
+        </div>
+      )}
 
-        <div className="col-md-6 mb-2">
-            {/* ================= CLIENTE ================= */}
-                  <div
-                    className="position-relative mb-2"
-                    ref={clienteRef}
+      <div className="row g-3 mb-3">
+        {/* ================= CLIENTE ================= */}
+        <div className="col-md-6 position-relative" ref={clienteRef}>
+          <div className="form-floating">
+            <input
+              className="form-control"
+              placeholder="Buscar cliente..."
+              value={clienteSearch}
+              autoComplete="off"
+              disabled={loading}
+              onChange={(e) => {
+                setClienteSearch(e.target.value);
+                setShowClienteDropdown(true);
+                setForm((prev) => ({
+                  ...prev,
+                  cliente: "",
+                  instrumento: "",
+                }));
+              }}
+              onFocus={() => setShowClienteDropdown(true)}
+            />
+            <label>Buscar cliente...</label>
+          </div>
+
+          {showClienteDropdown && clienteSearch && (
+            <div
+              className="dropdown-menu show w-100 shadow border-0 mt-1 rounded-3 overflow-hidden"
+              style={{
+                maxHeight: "200px",
+                overflowY: "auto",
+                zIndex: 1050,
+              }}
+            >
+              {filteredClientes.length > 0 ? (
+                filteredClientes.map((c) => (
+                  <button
+                    key={c._id}
+                    type="button"
+                    className="dropdown-item py-2 px-3 small"
+                    onClick={() => {
+                      setForm((prev) => ({
+                        ...prev,
+                        cliente: c._id,
+                        instrumento: "",
+                      }));
+                      setClienteSearch(c.nombre);
+                      setShowClienteDropdown(false);
+                    }}
                   >
-                    <input
-                      className="form-control"
-                      placeholder="Buscar cliente..."
-                      value={clienteSearch}
-                      autoComplete="off"
-                      onChange={(e) => {
-                        setClienteSearch(e.target.value);
-
-                        setShowClienteDropdown(true);
-
-                        setForm((prev) => ({
-                          ...prev,
-                          cliente: "",
-                          instrumento: "",
-                        }));
-                      }}
-                      onFocus={() => setShowClienteDropdown(true)}
-                    />
-
-                    {showClienteDropdown && clienteSearch && (
-                      <div
-                        className="dropdown-menu show w-100 shadow"
-                        style={{
-                          maxHeight: "220px",
-                          overflowY: "auto",
-                        }}
-                      >
-                        {filteredClientes.length > 0 ? (
-                          filteredClientes.map((c) => (
-                            <button
-                              key={c._id}
-                              type="button"
-                              className="dropdown-item"
-                              onClick={() => {
-                                setForm((prev) => ({
-                                  ...prev,
-                                  cliente: c._id,
-                                  instrumento: "",
-                                }));
-
-                                setClienteSearch(c.nombre);
-
-                                setShowClienteDropdown(false);
-                              }}
-                            >
-                              {c.nombre}
-                            </button>
-                          ))
-                        ) : (
-                          <div className="dropdown-item text-muted">
-                            Sin resultados
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
+                    <i className="bi bi-building text-muted me-2"></i>
+                    {c.nombre}
+                  </button>
+                ))
+              ) : (
+                <div className="dropdown-item text-muted py-2 px-3 small">
+                  Sin resultados
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
-        <div className="col-md-6 mb-2">
-                     {/* ================= INSTRUMENTOS ================= */}
-      <select
-        className="form-select mb-2"
-        value={form.instrumento}
-        disabled={!form.cliente}
-        onChange={(e) =>
-          setForm((prev) => ({
-            ...prev,
-            instrumento: e.target.value,
-          }))
-        }
-      >
-        <option value="">
-          {!form.cliente
-            ? "Seleccione cliente primero"
-            : instrumentosCliente.length === 0
-            ? "Sin instrumentos"
-            : "Seleccionar instrumento"}
-        </option>
+        {/* ================= INSTRUMENTOS ================= */}
+        <div className="col-md-6">
+          <div className="form-floating">
+            <select
+              className="form-select"
+              value={form.instrumento}
+              disabled={!form.cliente || loading}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  instrumento: e.target.value,
+                }))
+              }
+            >
+              <option value="">
+                {!form.cliente
+                  ? "Seleccione cliente primero"
+                  : instrumentosCliente.length === 0
+                  ? "Sin instrumentos"
+                  : "Seleccionar instrumento"}
+              </option>
 
-        {instrumentosCliente.map((i) => (
-          <option key={i._id} value={i._id}>
-            {i.descripcion} — SN {i.numeroSerie}
-          </option>
-        ))}
-      </select>
+              {instrumentosCliente.map((i) => (
+                <option key={i._id} value={i._id}>
+                  {i.descripcion} — SN {i.numeroSerie}
+                </option>
+              ))}
+            </select>
+            <label>Instrumento</label>
+          </div>
         </div>
 
-        <div className="col-12 mb-2">
-          {/* ================= TAREA ================= */}
-            <input className="form-control mb-2"
-              placeholder="Tarea"
+        {/* ================= TAREA ================= */}
+        <div className="col-12">
+          <div className="form-floating">
+            <input
+              className="form-control"
+              placeholder="Descripción de la tarea"
               value={form.tarea}
+              disabled={loading}
               onChange={(e) =>
                 setForm((prev) => ({
                   ...prev,
                   tarea: e.target.value,
                 }))
               }
+              required
             />
+            <label>Descripción de la tarea *</label>
+          </div>
         </div>
 
-        <div className="col-md-6 mb-2"> 
-          {/* ================= FECHA ================= */}
-                <input
-                  type="date"
-                  className="form-control mb-2"
-                  value={form.fecha}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      fecha: e.target.value,
-                    }))
-                  }
-                />
+        {/* ================= FECHA ================= */}
+        <div className="col-md-6">
+          <div className="form-floating">
+            <input
+              type="date"
+              className="form-control"
+              value={form.fecha}
+              disabled={loading}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  fecha: e.target.value,
+                }))
+              }
+              required
+            />
+            <label>Fecha límite *</label>
+          </div>
         </div>
 
-        <div className="col-md-6 mb-2">
-          {/* ================= PRIORIDAD================= */}
-                <select
-                  className="form-select mb-2"
-                  value={form.prioridad}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      prioridad: e.target.value,
-                    }))
-                  }
-                >
-                  <option>Baja</option>
-                  <option>Media</option>
-                  <option>Alta</option>
-                  <option>Urgente</option>
-                </select>
+        {/* ================= PRIORIDAD ================= */}
+        <div className="col-md-6">
+          <div className="form-floating">
+            <select
+              className="form-select"
+              value={form.prioridad}
+              disabled={loading}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  prioridad: e.target.value,
+                }))
+              }
+            >
+              <option value="Baja">Baja</option>
+              <option value="Media">Media</option>
+              <option value="Alta">Alta</option>
+              <option value="Urgente">Urgente</option>
+            </select>
+            <label>Prioridad</label>
+          </div>
         </div>
 
-        <div className="col-md-6 mb-2">
-      {/* ================= ESTADO ================= */}
-      <select
-        className="form-select mb-2"
-        value={form.estado}
-        onChange={(e) =>
-          setForm((prev) => ({
-            ...prev,
-            estado: e.target.value,
-          }))
-        }
-      >
-        <option>Pendiente</option>
-        <option>En proceso</option>
-        <option>Finalizada</option>
-        <option>Cancelada</option>
-      </select>
+        {/* ================= ESTADO ================= */}
+        <div className="col-md-6">
+          <div className="form-floating">
+            <select
+              className="form-select"
+              value={form.estado}
+              disabled={loading}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  estado: e.target.value,
+                }))
+              }
+            >
+              <option value="Pendiente">Pendiente</option>
+              <option value="En proceso">En proceso</option>
+              <option value="Finalizada">Finalizada</option>
+              <option value="Cancelada">Cancelada</option>
+            </select>
+            <label>Estado</label>
+          </div>
         </div>
 
-        <div className="col-md-6 mb-2">
-{/* ================= RESPONSABLE ================= */}
-
-      <select
-        className="form-select mb-2"
-        value={form.responsable}
-        onChange={(e) =>
-          setForm((prev) => ({
-            ...prev,
-            responsable: e.target.value,
-          }))
-        }
-      >
-        <option value="">
-          Seleccionar responsable
-        </option>
-
-        <option value="Vaccaro Sebastián">
-          Vaccaro Sebastián
-        </option>
-
-        <option value="Correas Gustavo">
-          Correas Gustavo
-        </option>
-
-        <option value="Orlandi Matías">
-          Orlandi Matías
-        </option>
-
-        <option value="Gerbaudo Leandro">
-          Gerbaudo Leandro
-        </option>
-      </select>
-
+        {/* ================= RESPONSABLE ================= */}
+        <div className="col-md-6">
+          <div className="form-floating">
+            <select
+              className="form-select"
+              value={form.responsable}
+              disabled={loading}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  responsable: e.target.value,
+                }))
+              }
+            >
+              <option value="">Seleccionar responsable</option>
+              <option value="Vaccaro Sebastián">Vaccaro Sebastián</option>
+              <option value="Correas Gustavo">Correas Gustavo</option>
+              <option value="Orlandi Matías">Orlandi Matías</option>
+              <option value="Gerbaudo Leandro">Gerbaudo Leandro</option>
+            </select>
+            <label>Responsable</label>
+          </div>
         </div>
 
-        <div className="col-12 mb-2">
-{/* ================= NOTAS ================= */}
-
-      <textarea className="form-control mb-2"
-        rows={3}
-        placeholder="Notas"
-        value={form.notas}
-        onChange={(e) =>
-          setForm((prev) => ({
-            ...prev,
-            notas: e.target.value,
-          }))
-        }
-      />
+        {/* ================= NOTAS ================= */}
+        <div className="col-12">
+          <div className="form-floating">
+            <textarea
+              className="form-control"
+              placeholder="Notas adicionales"
+              value={form.notas}
+              disabled={loading}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  notas: e.target.value,
+                }))
+              }
+              style={{ height: "80px", resize: "none" }}
+            />
+            <label>Notas</label>
+          </div>
         </div>
-
       </div>
 
-      {error && (
-        <div className="alert alert-danger py-2 mb-3" role="alert">
-          {error}
-        </div>
-      )}
-
-
       {/* ================= BOTONES ================= */}
-      <div className="d-flex gap-2">
+      <div className="d-flex gap-2 pt-2 border-top">
         <button
-          type="submit"
-          className="btn btn-primary w-100"
-          disabled={!isValid || loading}
+          type="button"
+          className="btn btn-secondary flex-fill py-2 fw-semibold shadow-sm"
+          onClick={(e) => {
+            e.preventDefault();
+            onClose();
+          }}
+          disabled={loading}
         >
-          {loading
-            ? "Guardando..."
-            : tareaEdit
-            ? "Actualizar"
-            : "Guardar"}
+          <i className="bi bi-x-lg me-1"></i>
+          Cancelar
         </button>
 
         <button
-          type="button"
-          className="btn btn-outline-secondary w-100"
-          onClick={onClose}
+          type="submit"
+          className="btn btn-primary flex-fill py-2 fw-semibold shadow-sm"
+          disabled={!isValid || loading}
         >
-          Cancelar
+          {loading ? (
+            <>
+              <span className="spinner-border spinner-border-sm me-2" role="status" />
+              Guardando...
+            </>
+          ) : (
+            <>
+              <i className={`bi ${tareaEdit ? "bi-check-lg" : "bi-plus-lg"} me-1`}></i>
+              {tareaEdit ? "Actualizar Tarea" : "Guardar Tarea"}
+            </>
+          )}
         </button>
       </div>
     </form>

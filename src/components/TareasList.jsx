@@ -429,10 +429,10 @@ export default function TareasList({
       {/* ================= MODAL DE CALENDARIO MENSUAL ================= */}
       {showCalendario && (
         <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-          <div className="modal-dialog modal-xl modal-dialog-centered">
+          <div className="modal-dialog modal-lg modal-dialog-centered"> {/* 👈 Cambiado a modal-lg */}
             <div className="modal-content border-0 shadow">
-              <div className="modal-header bg-dark text-white">
-                <h5 className="modal-title fw-bold">
+              <div className="modal-header bg-dark text-white py-2">
+                <h5 className="modal-title fw-bold fs-6">
                   <i className="bi bi-calendar3 me-2"></i> Calendario de Tareas — <span className="text-capitalize">{nombreMesAnio}</span>
                 </h5>
                 <button
@@ -442,9 +442,9 @@ export default function TareasList({
                 ></button>
               </div>
 
-              <div className="modal-body p-4">
+              <div className="modal-body p-3"> {/* 👈 Padding reducido */}
                 {/* LEYENDA DE PRIORIDADES */}
-                <div className="d-flex gap-3 mb-3 justify-content-end align-items-center small">
+                <div className="d-flex gap-3 mb-2 justify-content-end align-items-center small">
                   <span className="fw-bold me-1 text-muted">Prioridades:</span>
                   <span className="d-flex align-items-center gap-1">
                     <span className="badge rounded-circle bg-danger p-1"> </span> Urgente
@@ -464,30 +464,30 @@ export default function TareasList({
                   
                   {/* ZONA IZQUIERDA: Cuadrícula del Mes Completo */}
                   <div className="col-lg-7 border-end pe-lg-3">
-                    <div className="d-flex justify-content-between align-items-center mb-3">
+                    <div className="d-flex justify-content-between align-items-center mb-2">
                       <button 
-                        className="btn btn-outline-secondary btn-sm"
+                        className="btn btn-outline-secondary btn-sm py-0 px-2"
                         onClick={() => cambiarMes(-1)}
                       >
                         <i className="bi bi-chevron-left"></i> Anterior
                       </button>
                       
                       <div className="d-flex gap-2 align-items-center">
-                        <button className="btn btn-sm btn-outline-dark px-3" onClick={irAHoy}>
+                        <button className="btn btn-sm btn-outline-dark py-0 px-2" onClick={irAHoy}>
                           Hoy
                         </button>
-                        <span className="fw-bold text-capitalize fs-6 text-dark">{nombreMesAnio}</span>
+                        <span className="fw-bold text-capitalize small text-dark">{nombreMesAnio}</span>
                       </div>
 
                       <button 
-                        className="btn btn-outline-secondary btn-sm"
+                        className="btn btn-outline-secondary btn-sm py-0 px-2"
                         onClick={() => cambiarMes(1)}
                       >
                         Siguiente <i className="bi bi-chevron-right"></i>
                       </button>
                     </div>
 
-                    <div className="row text-center fw-bold text-muted small bg-light py-2 rounded mb-2">
+                    <div className="row text-center fw-bold text-muted small bg-light py-1 rounded mb-1" style={{ fontSize: "0.75rem" }}>
                       <div className="col">Lun</div>
                       <div className="col">Mar</div>
                       <div className="col">Mié</div>
@@ -497,14 +497,14 @@ export default function TareasList({
                       <div className="col text-primary">Dom</div>
                     </div>
 
-                    <div className="row g-1" style={{ minHeight: "320px" }}>
+                    <div className="row g-1" style={{ minHeight: "260px" }}> {/* 👈 Altura mínima reducida */}
                       {diasDelMes.map((item, index) => {
                         const fechaStr = item.fecha.toISOString().split("T")[0];
                         const { total, prioridadMaxima } = obtenerInfoTareasFecha(item.fecha);
                         const esSeleccionado = fechaSeleccionada === fechaStr;
 
                         return (
-                          <div className="col-12" style={{ width: "14.28%", height: "64px" }} key={index}>
+                          <div className="col-12" style={{ width: "14.28%", height: "48px" }} key={index}> {/* 👈 Altura de celda más compacta (48px) */}
                             <button
                               type="button"
                               onClick={() => setFechaSeleccionada(fechaStr)}
@@ -515,14 +515,14 @@ export default function TareasList({
                                     ? "bg-white text-dark border-light" 
                                     : "bg-light text-muted border-light opacity-50"
                               }`}
-                              style={{ fontSize: "0.85rem" }}
+                              style={{ fontSize: "0.75rem" }}
                             >
                               <span>{item.fecha.getDate()}</span>
                               
                               {total > 0 && (
                                 <span 
                                   className={`badge rounded-pill ${badgePrioridadClase(prioridadMaxima)}`} 
-                                  style={{ fontSize: "0.6rem" }}
+                                  style={{ fontSize: "0.55rem", padding: "1px 4px" }}
                                   title={`Máxima prioridad: ${prioridadMaxima}`}
                                 >
                                   {total}
@@ -538,45 +538,45 @@ export default function TareasList({
                   {/* ZONA DERECHA: Lista de Tareas del Día Seleccionado */}
                   <div className="col-lg-5 d-flex flex-column ps-lg-3">
                     <div className="d-flex justify-content-between align-items-center mb-2">
-                      <h6 className="fw-bold m-0 text-dark">
+                      <h6 className="fw-bold m-0 text-dark small">
                         📅 {formatearFecha(fechaSeleccionada)}
                       </h6>
-                      <span className="badge bg-secondary rounded-pill">
+                      <span className="badge bg-secondary rounded-pill" style={{ fontSize: "0.7rem" }}>
                         {tareasPorFecha.length} {tareasPorFecha.length === 1 ? "tarea" : "tareas"}
                       </span>
                     </div>
 
-                    <div style={{ maxHeight: "360px", overflowY: "auto" }} className="d-flex flex-column gap-2 pe-1">
+                    <div style={{ maxHeight: "280px", overflowY: "auto" }} className="d-flex flex-column gap-2 pe-1"> {/* 👈 Altura máxima reducida */}
                       {tareasPorFecha.length === 0 ? (
-                        <div className="text-center text-muted py-5 my-auto">
-                          <i className="bi bi-calendar-x fs-1 d-block mb-2 opacity-50"></i>
-                          No hay tareas registradas para este día
+                        <div className="text-center text-muted py-4 my-auto small">
+                          <i className="bi bi-calendar-x fs-3 d-block mb-1 opacity-50"></i>
+                          No hay tareas para este día
                         </div>
                       ) : (
                         tareasPorFecha.map((t) => (
                           <div 
                             key={t._id} 
-                            className={`card p-3 shadow-sm border-0 border-start border-4 ${borderPrioridadCard(t.prioridad)} bg-white rounded-3`}
+                            className={`card p-2 shadow-sm border-0 border-start border-4 ${borderPrioridadCard(t.prioridad)} bg-white rounded-3`}
                           >
                             <div className="d-flex justify-content-between align-items-center mb-1">
-                              <span className="fw-bold small text-dark text-truncate" style={{ maxWidth: "60%" }}>
+                              <span className="fw-bold small text-dark text-truncate" style={{ maxWidth: "55%", fontSize: "0.8rem" }}>
                                 <i className="bi bi-building text-muted me-1"></i> {getCliente(t)}
                               </span>
                               
                               <div className="d-flex gap-1">
-                                <span className={`badge rounded-pill ${badgePrioridadClase(t.prioridad)}`} style={{ fontSize: "0.65rem" }}>
+                                <span className={`badge rounded-pill ${badgePrioridadClase(t.prioridad)}`} style={{ fontSize: "0.6rem" }}>
                                   {t.prioridad || "Baja"}
                                 </span>
-                                <span className={`badge rounded-pill ${badgeEstadoClase(t.estado)}`} style={{ fontSize: "0.65rem" }}>
+                                <span className={`badge rounded-pill ${badgeEstadoClase(t.estado)}`} style={{ fontSize: "0.6rem" }}>
                                   {t.estado}
                                 </span>
                               </div>
                             </div>
                             
-                            <p className="mb-2 small text-secondary">{t.tarea || "Sin descripción de tarea"}</p>
+                            <p className="mb-1 text-secondary" style={{ fontSize: "0.75rem" }}>{t.tarea || "Sin descripción"}</p>
                             
-                            <div className="d-flex justify-content-between align-items-center border-top pt-2 mt-1">
-                              <span className="text-muted" style={{ fontSize: "0.75rem" }}>
+                            <div className="d-flex justify-content-between align-items-center border-top pt-1 mt-1">
+                              <span className="text-muted" style={{ fontSize: "0.7rem" }}>
                                 Resp: <b className="text-dark">{t.responsable || "—"}</b>
                               </span>
 
@@ -584,8 +584,8 @@ export default function TareasList({
                               <div className="d-flex gap-1">
                                 {onUpdateEstado && t.estado !== "Finalizada" && (
                                   <button
-                                    className="btn btn-sm btn-outline-success py-0 px-2"
-                                    style={{ fontSize: "0.75rem" }}
+                                    className="btn btn-sm btn-outline-success py-0 px-1"
+                                    style={{ fontSize: "0.65rem" }}
                                     title="Marcar como Finalizada"
                                     onClick={() => onUpdateEstado(t._id, "Finalizada")}
                                   >
@@ -601,7 +601,7 @@ export default function TareasList({
                                     onEdit?.(t);
                                   }}
                                 >
-                                  <i className="bi bi-pencil-fill" style={{ fontSize: "0.75rem" }}></i>
+                                  <i className="bi bi-pencil-fill" style={{ fontSize: "0.65rem" }}></i>
                                 </button>
 
                                 <button
@@ -609,7 +609,7 @@ export default function TareasList({
                                   title="Eliminar Tarea"
                                   onClick={() => onDelete?.(t._id)}
                                 >
-                                  <i className="bi bi-trash-fill" style={{ fontSize: "0.75rem" }}></i>
+                                  <i className="bi bi-trash-fill" style={{ fontSize: "0.65rem" }}></i>
                                 </button>
                               </div>
                             </div>
@@ -623,10 +623,10 @@ export default function TareasList({
                 </div>
               </div>
 
-              <div className="modal-footer bg-light">
+              <div className="modal-footer bg-light py-2">
                 <button
                   type="button"
-                  className="btn btn-secondary px-4"
+                  className="btn btn-secondary btn-sm px-3"
                   onClick={() => setShowCalendario(false)}
                 >
                   Cerrar

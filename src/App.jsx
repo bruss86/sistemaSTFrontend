@@ -46,6 +46,7 @@ function App() {
   const [showTareaModal, setShowTareaModal] = useState(false);
 
   const [instrumentoEdit, setInstrumentoEdit] = useState(null);
+  const [clienteEdit, setClienteEdit] = useState(null); // <-- Asegurar estado de cliente edit
   const [servicioEdit, setServicioEdit] = useState(null);
   const [tareaEdit, setTareaEdit] = useState(null);
 
@@ -198,7 +199,7 @@ function App() {
         {view === "instrumentos" && (
           <InstrumentoList
             instrumentos={instrumentos}
-            onNavigateToMantenimientos={() => setView("mantenimientos")} // <-- CONEXIÓN AGREGADA AQUÍ
+            onNavigateToMantenimientos={() => setView("mantenimientos")}
             onNew={() => {
               setInstrumentoEdit(null);
               setShowInstrumentoModal(true);
@@ -223,6 +224,14 @@ function App() {
             clientes={clientes}
             instrumentos={instrumentos}
             onRefresh={handleRefresh}
+            onNew={() => {
+              setClienteEdit(null);
+              setShowClienteModal(true);
+            }}
+            onEdit={(c) => {
+              setClienteEdit(c);
+              setShowClienteModal(true);
+            }}
             onDelete={async (id) => {
               await fetch(`${API_URL}/clientes/${id}`, {
                 method: "DELETE",
@@ -324,11 +333,18 @@ function App() {
       {showClienteModal && (
         <Modal onClose={() => setShowClienteModal(false)}>
           <ClienteForm
+            clienteEditando={clienteEdit}
             onClienteCreado={() => {
               handleRefresh();
               showToast("Cliente creado");
+              setShowClienteModal(false); // <--- CIERRA EL MODAL AL CREAR
             }}
-            onClose={() => setShowClienteModal(false)}
+            onClienteGuardado={() => {
+              handleRefresh();
+              showToast("Cliente actualizado");
+              setShowClienteModal(false); // <--- CIERRA EL MODAL AL ACTUALIZAR
+            }}
+            onClose={() => setShowClienteModal(false)} // <--- CIERRA EL MODAL AL CANCELAR
           />
         </Modal>
       )}

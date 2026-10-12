@@ -32,13 +32,11 @@ export default function InstrumentoForm({
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   const isEdit = Boolean(instrumento?._id);
-  const mantenimientoRegistrado =
-    Boolean(form.fechaUltimoMantenimiento);
+  const mantenimientoRegistrado = Boolean(form.fechaUltimoMantenimiento);
 
   // ======================================================
   // CARGAR CLIENTES
   // ======================================================
-
   useEffect(() => {
     const cargarClientes = async () => {
       try {
@@ -55,7 +53,6 @@ export default function InstrumentoForm({
   // ======================================================
   // CARGAR / RESET FORMULARIO
   // ======================================================
-
   useEffect(() => {
     if (instrumento) {
       setForm({
@@ -70,9 +67,7 @@ export default function InstrumentoForm({
         notas: instrumento.notas || "",
       });
 
-      setClienteSearch(
-        instrumento.cliente?.nombre || ""
-      );
+      setClienteSearch(instrumento.cliente?.nombre || "");
     } else {
       setForm(initialForm);
       setClienteSearch("");
@@ -84,19 +79,15 @@ export default function InstrumentoForm({
   // ======================================================
   // CLIENTES FILTRADOS
   // ======================================================
-
   const clientesFiltrados = clientes
     .filter((c) =>
-      c.nombre
-        ?.toLowerCase()
-        .includes(clienteSearch.toLowerCase())
+      c.nombre?.toLowerCase().includes(clienteSearch.toLowerCase())
     )
     .slice(0, 8);
 
   // ======================================================
   // CAMBIOS
   // ======================================================
-
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -116,7 +107,6 @@ export default function InstrumentoForm({
   // ======================================================
   // CLIENTE
   // ======================================================
-
   const seleccionarCliente = (cliente) => {
     setForm((prev) => ({
       ...prev,
@@ -129,7 +119,6 @@ export default function InstrumentoForm({
 
   const limpiarCliente = () => {
     setClienteSearch("");
-
     setForm((prev) => ({
       ...prev,
       cliente: "",
@@ -138,11 +127,9 @@ export default function InstrumentoForm({
 
   const handleClienteChange = (e) => {
     const value = e.target.value;
-
     setClienteSearch(value);
     setShowSuggestions(true);
 
-    // Al modificar el texto, deja de estar seleccionado
     setForm((prev) => ({
       ...prev,
       cliente: "",
@@ -152,7 +139,6 @@ export default function InstrumentoForm({
   // ======================================================
   // MANTENIMIENTO
   // ======================================================
-
   const marcarSinMantenimiento = () => {
     setForm((prev) => ({
       ...prev,
@@ -163,7 +149,6 @@ export default function InstrumentoForm({
   // ======================================================
   // VALIDACIÓN
   // ======================================================
-
   const validate = () => {
     const e = {};
 
@@ -175,7 +160,6 @@ export default function InstrumentoForm({
       e.descripcion = "Obligatorio";
     }
 
-    // Si hay texto de cliente pero no se seleccionó
     if (clienteSearch.trim() && !form.cliente) {
       e.cliente = "Seleccione un cliente de la lista";
     }
@@ -186,14 +170,11 @@ export default function InstrumentoForm({
   // ======================================================
   // GUARDAR
   // ======================================================
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (loading) return;
 
     const validation = validate();
-
     if (Object.keys(validation).length > 0) {
       setErrors(validation);
       return;
@@ -205,26 +186,19 @@ export default function InstrumentoForm({
       const payload = {
         codigo: form.codigo.trim(),
         numeroSerie: form.numeroSerie.trim(),
-        numeroPartida:
-          form.numeroPartida.trim() || null,
+        numeroPartida: form.numeroPartida.trim() || null,
         descripcion: form.descripcion.trim(),
         condicion: form.condicion || null,
         cliente: form.cliente || null,
-        fechaUltimoMantenimiento:
-          form.fechaUltimoMantenimiento || null,
+        fechaUltimoMantenimiento: form.fechaUltimoMantenimiento || null,
         notas: form.notas || null,
       };
 
       if (isEdit) {
-        const updated = await updateInstrumento(
-          instrumento._id,
-          payload
-        );
-
+        const updated = await updateInstrumento(instrumento._id, payload);
         onUpdated?.(updated);
       } else {
         const created = await createInstrumento(payload);
-
         onCreated?.(created);
       }
 
@@ -234,7 +208,6 @@ export default function InstrumentoForm({
       setForm(initialForm);
       setClienteSearch("");
       setErrors({});
-
     } catch (err) {
       setErrors({
         general:
@@ -250,34 +223,23 @@ export default function InstrumentoForm({
   // ======================================================
   // RENDER
   // ======================================================
-
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="card p-3 shadow-sm"
-    >
+    <form onSubmit={handleSubmit} className="p-2">
+      
       {/* TÍTULO */}
-
-      <h5 className="mb-2">
-        {isEdit
-          ? "✏️ Editar Instrumento"
-          : "🧰 Nuevo Instrumento"}
+      <h5 className="mb-3 fw-bold text-dark">
+        {isEdit ? "✏️ Editar Instrumento" : "🧰 Nuevo Instrumento"}
       </h5>
 
       {/* ERROR GENERAL */}
-
       {errors.general && (
-        <div className="alert alert-danger py-1 px-2 mb-2 small">
-          {errors.general}
+        <div className="alert alert-danger py-2 px-3 mb-3 small shadow-sm">
+          <i className="bi bi-exclamation-triangle-fill me-1"></i> {errors.general}
         </div>
       )}
 
-      {/* ==================================================
-          CÓDIGO + SERIE + PARTIDA
-      ================================================== */}
-
-      <div className="row g-2 mb-2">
-
+      {/* CÓDIGO + SERIE + PARTIDA */}
+      <div className="row g-2 mb-3">
         <div className="col-md-4">
           <div className="form-floating">
             <input
@@ -294,15 +256,16 @@ export default function InstrumentoForm({
         <div className="col-md-4">
           <div className="form-floating">
             <input
-              className={`form-control ${
-                errors.numeroSerie ? "is-invalid" : ""
-              }`}
+              className={`form-control ${errors.numeroSerie ? "is-invalid" : ""}`}
               name="numeroSerie"
               placeholder="Número de Serie"
               value={form.numeroSerie}
               onChange={handleChange}
             />
-            <label>Serie</label>
+            <label>Serie *</label>
+            {errors.numeroSerie && (
+              <div className="invalid-feedback">{errors.numeroSerie}</div>
+            )}
           </div>
         </div>
 
@@ -318,27 +281,23 @@ export default function InstrumentoForm({
             <label>Partida</label>
           </div>
         </div>
-
       </div>
 
-      {/* ==================================================
-          DESCRIPCIÓN + CONDICIÓN
-      ================================================== */}
-
-      <div className="row g-2 mb-2">
-
+      {/* DESCRIPCIÓN + CONDICIÓN */}
+      <div className="row g-2 mb-3">
         <div className="col-md-8">
           <div className="form-floating">
             <input
-              className={`form-control ${
-                errors.descripcion ? "is-invalid" : ""
-              }`}
+              className={`form-control ${errors.descripcion ? "is-invalid" : ""}`}
               name="descripcion"
               placeholder="Descripción"
               value={form.descripcion}
               onChange={handleChange}
             />
             <label>Descripción *</label>
+            {errors.descripcion && (
+              <div className="invalid-feedback">{errors.descripcion}</div>
+            )}
           </div>
         </div>
 
@@ -356,45 +315,28 @@ export default function InstrumentoForm({
               <option value="Prestado">Prestado</option>
               <option value="Alquilado">Alquilado</option>
             </select>
-
             <label>Condición</label>
           </div>
         </div>
-
       </div>
 
-      {/* ==================================================
-          CLIENTE
-      ================================================== */}
-
-      <div className="mb-2 position-relative">
-
+      {/* CLIENTE CON AUTOCOMPLETE */}
+      <div className="mb-3 position-relative">
         <div className="input-group">
-
           <div className="form-floating flex-grow-1">
-
             <input
-              className={`form-control ${
-                errors.cliente ? "is-invalid" : ""
-              }`}
-              placeholder="Cliente"
+              className={`form-control ${errors.cliente ? "is-invalid" : ""}`}
+              placeholder="Buscar cliente..."
               value={clienteSearch}
               onChange={handleClienteChange}
               onFocus={() => {
-                if (clienteSearch) {
-                  setShowSuggestions(true);
-                }
+                if (clienteSearch) setShowSuggestions(true);
               }}
               onBlur={() => {
-                setTimeout(
-                  () => setShowSuggestions(false),
-                  200
-                );
+                setTimeout(() => setShowSuggestions(false), 200);
               }}
             />
-
             <label>Cliente</label>
-
           </div>
 
           {clienteSearch && (
@@ -407,7 +349,6 @@ export default function InstrumentoForm({
               <i className="bi bi-x-lg"></i>
             </button>
           )}
-
         </div>
 
         {errors.cliente && (
@@ -417,64 +358,49 @@ export default function InstrumentoForm({
         )}
 
         {/* SUGERENCIAS */}
-
         {showSuggestions && clienteSearch && (
           <ul
-            className="list-group position-absolute w-100 z-3 shadow-sm"
-            style={{ maxHeight: "220px", overflowY: "auto" }}
+            className="list-group position-absolute w-100 z-3 shadow border-0 mt-1 rounded-3 overflow-hidden"
+            style={{ maxHeight: "200px", overflowY: "auto" }}
           >
             {clientesFiltrados.length > 0 ? (
               clientesFiltrados.map((c) => (
                 <li
                   key={c._id}
-                  className="list-group-item list-group-item-action py-2"
+                  className="list-group-item list-group-item-action py-2 px-3 small"
                   style={{ cursor: "pointer" }}
-                  onMouseDown={() =>
-                    seleccionarCliente(c)
-                  }
+                  onMouseDown={() => seleccionarCliente(c)}
                 >
+                  <i className="bi bi-building text-muted me-2"></i>
                   {c.nombre}
                 </li>
               ))
             ) : (
-              <li className="list-group-item text-muted py-2">
+              <li className="list-group-item text-muted py-2 px-3 small">
                 Sin resultados
               </li>
             )}
           </ul>
         )}
-
       </div>
 
-      {/* ==================================================
-          NOTAS
-      ================================================== */}
-
-      <div className="form-floating mb-2">
-
+      {/* NOTAS */}
+      <div className="form-floating mb-3">
         <textarea
           className="form-control"
-          placeholder="Notas"
+          placeholder="Notas adicionales"
           name="notas"
           value={form.notas}
           onChange={handleChange}
           style={{ height: "70px", resize: "none" }}
         />
-
         <label>Notas</label>
-
       </div>
 
-      {/* ==================================================
-          MANTENIMIENTO
-      ================================================== */}
-
-      <div className="row g-2 mb-2">
-
+      {/* MANTENIMIENTO */}
+      <div className="row g-2 mb-4">
         <div className="col-md-7">
-
           <div className="form-floating">
-
             <input
               type="date"
               className="form-control"
@@ -482,104 +408,76 @@ export default function InstrumentoForm({
               value={form.fechaUltimoMantenimiento}
               onChange={handleChange}
             />
-
-            <label>Último mantenimiento</label>
-
+            <label>Último Mantenimiento</label>
           </div>
-
         </div>
 
         <div className="col-md-5">
-
           <div
-            className={`h-100 d-flex align-items-center justify-content-between border rounded px-2 ${
-              mantenimientoRegistrado
-                ? "border-success"
-                : ""
+            className={`h-100 d-flex align-items-center justify-content-between border rounded-3 px-3 bg-light ${
+              mantenimientoRegistrado ? "border-success bg-success bg-opacity-10" : ""
             }`}
           >
-
             <span
-              className={
-                mantenimientoRegistrado
-                  ? "text-success small"
-                  : "text-secondary small"
-              }
+              className={`small fw-semibold ${
+                mantenimientoRegistrado ? "text-success" : "text-muted"
+              }`}
             >
               <i
                 className={`bi ${
                   mantenimientoRegistrado
                     ? "bi-check-circle-fill"
-                    : "bi-circle"
+                    : "bi-info-circle"
                 } me-1`}
               ></i>
-
-              {mantenimientoRegistrado
-                ? "Mantenimiento registrado"
-                : "Sin mantenimiento"}
+              {mantenimientoRegistrado ? "Registrado" : "Sin mant."}
             </span>
 
             {mantenimientoRegistrado && (
               <button
                 type="button"
-                className="btn btn-sm btn-outline-secondary py-0 px-2"
+                className="btn btn-sm btn-outline-danger border-0 py-0 px-2"
                 onClick={marcarSinMantenimiento}
-                title="Quitar mantenimiento"
+                title="Quitar fecha"
               >
                 <i className="bi bi-x-lg"></i>
               </button>
             )}
-
           </div>
-
         </div>
-
       </div>
 
-      {/* ==================================================
-          BOTONES
-      ================================================== */}
-
-      <div className="d-flex gap-2 mt-1">
-
+      {/* BOTONES DE ACCIÓN */}
+      <div className="d-flex gap-2 pt-2 border-top">
         <button
           type="submit"
-          className={`btn ${
-            isEdit ? "btn-warning" : "btn-success"
-          } flex-fill`}
+          className="btn btn-primary flex-fill py-2 fw-semibold shadow-sm"
           disabled={loading}
         >
           {loading ? (
             <>
-              <span className="spinner-border spinner-border-sm me-1" />
+              <span className="spinner-border spinner-border-sm me-2" role="status" />
               Guardando...
             </>
           ) : (
             <>
-              <i
-                className={`bi ${
-                  isEdit
-                    ? "bi-check-lg"
-                    : "bi-plus-lg"
-                } me-1`}
-              ></i>
-
-              {isEdit ? "Actualizar" : "Crear"}
+              <i className={`bi ${isEdit ? "bi-check-lg" : "bi-plus-lg"} me-1`}></i>
+              {isEdit ? "Actualizar Instrumento" : "Crear Instrumento"}
             </>
           )}
         </button>
 
         <button
           type="button"
-          className="btn btn-secondary flex-fill"
+          className="btn btn-secondary flex-fill py-2 fw-semibold shadow-sm"
           onClick={onClose}
           disabled={loading}
         >
           <i className="bi bi-x-lg me-1"></i>
           Cancelar
         </button>
-
       </div>
+      
     </form>
   );
 }
