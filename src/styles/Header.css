@@ -1,0 +1,24 @@
+/* src/styles/Header.css */
+.app-header {
+  background-color: #ffffff;
+}
+
+@media (max-width: 991.98px) {
+  .nav-center {
+    display: none;
+    position: absolute;
+    top: 60px;
+    left: 0;
+    right: 0;
+    background: #ffffff;
+    flex-direction: column;
+    padding: 1rem;
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid #dee2e6;
+    z-index: 1000;
+  }
+
+  .nav-center.open {
+    display: flex;
+  }
+}

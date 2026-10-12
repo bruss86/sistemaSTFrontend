@@ -10,9 +10,11 @@ export default function Dashboard({ refresh, onNavigate }) {
   const [instrumentos, setInstrumentos] = useState([]);
   const [clientes, setClientes] = useState([]);
   const [tareas, setTareas] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const cargar = async () => {
+      setLoading(true);
       try {
         const [ins, cli, tar] = await Promise.all([
           getInstrumentos(),
@@ -33,6 +35,8 @@ export default function Dashboard({ refresh, onNavigate }) {
         );
       } catch (error) {
         console.error("Error dashboard:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -45,40 +49,32 @@ export default function Dashboard({ refresh, onNavigate }) {
   const parseDateSafe = (value) => {
     if (!value) return null;
 
-    // Si viene como YYYY-MM-DD evitamos problemas de zona horaria
     if (
       typeof value === "string" &&
-      /^\d{4}-\d{2}-\d{2}$/.test(value)
+      /^\d{4}-\d{2}-\d{2}\$/.test(value)
     ) {
       const [year, month, day] = value.split("-").map(Number);
-
       return new Date(year, month - 1, day);
     }
 
     const date = new Date(value);
-
     if (isNaN(date.getTime())) {
       return null;
     }
 
     date.setHours(0, 0, 0, 0);
-
     return date;
   };
 
   // ---------------------------------------------------------
-  // Calcula la fecha de próximo mantenimiento
-  // Último mantenimiento + 12 meses
+  // Calcula la fecha de próximo mantenimiento (+12 meses)
   // ---------------------------------------------------------
   const getFechaProximoMantenimiento = (fechaUltimo) => {
     const fecha = parseDateSafe(fechaUltimo);
-
     if (!fecha) return null;
 
     const proxima = new Date(fecha);
-
     proxima.setMonth(proxima.getMonth() + 12);
-
     return proxima;
   };
 
@@ -118,20 +114,15 @@ export default function Dashboard({ refresh, onNavigate }) {
       if (!fechaProximo) return;
 
       const dias = getDiasDiferencia(fechaProximo);
-
       if (dias === null) return;
 
-      // Ya venció
       if (dias < 0) {
         vencidos.push({
           ...instrumento,
           fechaProximoMantenimiento: fechaProximo,
           diasVencido: Math.abs(dias),
         });
-      }
-
-      // Vence dentro de los próximos 30 días
-      else if (dias <= 30) {
+      } else if (dias <= 30) {
         proximos.push({
           ...instrumento,
           fechaProximoMantenimiento: fechaProximo,
@@ -199,13 +190,21 @@ export default function Dashboard({ refresh, onNavigate }) {
     },
   ];
 
+  if (loading) {
+    return (
+      <div className="text-center py-5 text-muted">
+        <div className="spinner-border text-primary mb-2" role="status"></div>
+        <p>Cargando información del dashboard...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="dashboard-container">
 
       {/* -------------------------------------------------- */}
       {/* TARJETAS PRINCIPALES                               */}
       {/* -------------------------------------------------- */}
-
       {cards.map((c, i) => (
         <button
           key={i}
@@ -217,12 +216,10 @@ export default function Dashboard({ refresh, onNavigate }) {
           }}
         >
           <div className="dashboard-card-content">
-
             <div>
               <div className="dashboard-title">
                 {c.title}
               </div>
-
               <div className="dashboard-value">
                 {c.value}
               </div>
@@ -241,77 +238,60 @@ export default function Dashboard({ refresh, onNavigate }) {
                 }}
               />
             </div>
-
           </div>
         </button>
       ))}
 
       {/* -------------------------------------------------- */}
-      {/* ALERTAS                                            */}
+      {/* ALERTAS INFERIORES CLICKEABLES                     */}
       {/* -------------------------------------------------- */}
-
       <div className="dashboard-status">
 
         {/* Tareas pendientes */}
         {tareasPendientes.length > 0 && (
-          <div className="status-card info">
-
-            <div className="status-icon">
-              📝
-            </div>
-
+          <div 
+            className="status-card info" 
+            onClick={() => onNavigate("tareas")} 
+            style={{ cursor: "pointer" }}
+            title="Ir a tareas pendientes"
+          >
+            <div className="status-icon">📝</div>
             <div>
-              <div className="status-title">
-                Tareas pendientes
-              </div>
-
-              <div className="status-text">
-                {tareasPendientes.length} por realizar
-              </div>
+              <div className="status-title">Tareas pendientes</div>
+              <div className="status-text">{tareasPendientes.length} por realizar</div>
             </div>
-
           </div>
         )}
 
         {/* Instrumentos vencidos */}
         {vencidos.length > 0 && (
-          <div className="status-card danger">
-
-            <div className="status-icon">
-              ⚠️
-            </div>
-
+          <div 
+            className="status-card danger" 
+            onClick={() => onNavigate("mantenimientos", "vencido")} 
+            style={{ cursor: "pointer" }}
+            title="Ver instrumentos vencidos"
+          >
+            <div className="status-icon">⚠️</div>
             <div>
-              <div className="status-title">
-                Instrumentos vencidos
-              </div>
-
-              <div className="status-text">
-                {vencidos.length} requieren mantenimiento
-              </div>
+              <div className="status-title">Instrumentos vencidos</div>
+              <div className="status-text">{vencidos.length} requieren mantenimiento</div>
             </div>
-
           </div>
         )}
 
         {/* Próximos mantenimientos */}
         {proximos.length > 0 && (
-          <div className="status-card warning">
-
-            <div className="status-icon">
-              ⏳
-            </div>
-
+          <div 
+            className="status-card warning" 
+            onClick={() => onNavigate("mantenimientos", "proximo")} 
+            style={{ cursor: "pointer" }}
+            title="Ver próximos mantenimientos"
+          >
+            <div className="status-icon">⏳</div>
             <div>
-              <div className="status-title">
-                Próximos mantenimientos
-              </div>
-
-              <div className="status-text">
-                {proximos.length} vencerán en 30 días
-              </div>
+              <div className="status-title">Próximos mantenimientos</div>
+              <div className="status-text">{proximos.length} vencerán en 30 días</div>
             </div>
-
           </div>
         )}
 
@@ -320,21 +300,11 @@ export default function Dashboard({ refresh, onNavigate }) {
           vencidos.length === 0 &&
           proximos.length === 0 && (
             <div className="status-card success">
-
-              <div className="status-icon">
-                ✅
-              </div>
-
+              <div className="status-icon">✅</div>
               <div>
-                <div className="status-title">
-                  Sistema al día
-                </div>
-
-                <div className="status-text">
-                  No hay alertas pendientes
-                </div>
+                <div className="status-title">Sistema al día</div>
+                <div className="status-text">No hay alertas pendientes</div>
               </div>
-
             </div>
           )}
 

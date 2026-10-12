@@ -7,12 +7,10 @@ import InstrumentoList from "./components/InstrumentoList";
 import ClienteForm from "./components/ClienteForm";
 import InstrumentoForm from "./components/InstrumentoForm";
 import Modal from "./components/Modal";
-import Dashboard from "./components/Dashboard";
 import Login from "./pages/Login";
 import CasoList from "./components/CasosList";
 import MantenimientosList from "./components/MantenimientosList";
 import RegistrarMantenimientoModal from "./components/RegistrarMantenimientoModal";
-
 
 import ServiciosTercerosForm from "./components/ServiciosTercerosForm";
 import ServiciosTercerosList from "./components/ServiciosTercerosList";
@@ -30,6 +28,7 @@ function App() {
     Boolean(localStorage.getItem("token"))
   );
 
+  // Inicia por defecto en instrumentos
   const [view, setView] = useState("instrumentos");
   const [refresh, setRefresh] = useState(false);
   const [toast, setToast] = useState(null);
@@ -47,7 +46,6 @@ function App() {
   const [showTareaModal, setShowTareaModal] = useState(false);
 
   const [instrumentoEdit, setInstrumentoEdit] = useState(null);
-  const [instrumentoDelete, setInstrumentoDelete] = useState(null);
   const [servicioEdit, setServicioEdit] = useState(null);
   const [tareaEdit, setTareaEdit] = useState(null);
 
@@ -84,30 +82,29 @@ function App() {
     setLoading(true);
 
     try {
-    const headers = getHeaders();
+      const headers = getHeaders();
 
-    const [ins, cli, serv, rep, tar, cas] = await Promise.all([
-      fetch(`${API_URL}/instrumentos`, { headers }).then(safeJson),
-      fetch(`${API_URL}/clientes`, { headers }).then(safeJson),
-      fetch(`${API_URL}/servicios-terceros`, { headers }).then(safeJson),
-      fetch(`${API_URL}/repuestos`, { headers }).then(safeJson),
-      fetch(`${API_URL}/tareas`, { headers }).then(safeJson),
-      fetch(`${API_URL}/casos`, { headers }).then(safeJson),
-    ]);
+      const [ins, cli, serv, rep, tar, cas] = await Promise.all([
+        fetch(`${API_URL}/instrumentos`, { headers }).then(safeJson),
+        fetch(`${API_URL}/clientes`, { headers }).then(safeJson),
+        fetch(`${API_URL}/servicios-terceros`, { headers }).then(safeJson),
+        fetch(`${API_URL}/repuestos`, { headers }).then(safeJson),
+        fetch(`${API_URL}/tareas`, { headers }).then(safeJson),
+        fetch(`${API_URL}/casos`, { headers }).then(safeJson),
+      ]);
 
-    setInstrumentos(ins || []);
-    setClientes(cli || []);
-    setServicios(serv || []);
-    setRepuestos(rep || []);
-    setTareas(tar || []);
-    setCasos(cas || []);
-
-  } catch (error) {
-    console.error("Error al cargar datos:", error);
-    showToast("Error al cargar datos", "error");
-  } finally {
-    setLoading(false);
-  }
+      setInstrumentos(ins || []);
+      setClientes(cli || []);
+      setServicios(serv || []);
+      setRepuestos(rep || []);
+      setTareas(tar || []);
+      setCasos(cas || []);
+    } catch (error) {
+      console.error("Error al cargar datos:", error);
+      showToast("Error al cargar datos", "error");
+    } finally {
+      setLoading(false);
+    }
   }, [auth]);
 
   useEffect(() => {
@@ -118,6 +115,25 @@ function App() {
     fetchAll();
     setRefresh((r) => !r);
   }, [fetchAll]);
+
+  // Actualización rápida de estado de tarea
+  const handleUpdateEstadoTarea = async (id, nuevoEstado) => {
+    try {
+      await fetch(`${API_URL}/tareas/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...getHeaders(),
+        },
+        body: JSON.stringify({ estado: nuevoEstado }),
+      });
+      handleRefresh();
+      showToast("Estado actualizado");
+    } catch (error) {
+      console.error("Error al actualizar estado:", error);
+      showToast("Error al actualizar el estado", "error");
+    }
+  };
 
   const logout = () => {
     localStorage.removeItem("token");
@@ -141,9 +157,7 @@ function App() {
           <div className="spinner-border text-primary" role="status">
             <span className="visually-hidden">Cargando...</span>
           </div>
-          <div className="mt-2 text-muted">
-            Cargando sistema...
-          </div>
+          <div className="mt-2 text-muted">Cargando sistema...</div>
         </div>
       </div>
     );
@@ -160,150 +174,133 @@ function App() {
   };
 
   return (
-    <div className="container-fluid px-4 py-3">
-
+    <div className="container-fluid px-4 py-3" style={{ minHeight: "100vh" }}>
       <Header
         onLogout={logout}
         view={view}
         setView={setView}
       />
 
-      <div className="row g-3">
-        <div className="col-md-3">
-          <Dashboard
-            refresh={refresh}
-            onNavigate={(vista, filtro = "todos") => {
-              setMantenimientoFiltro(filtro);
-              setView(vista);
+      {loading && (
+        <div className="text-center py-2">
+          <div
+            className="spinner-border spinner-border-sm text-primary"
+            role="status"
+          >
+            <span className="visually-hidden">Actualizando...</span>
+          </div>
+          <span className="ms-2 text-muted small">Actualizando datos...</span>
+        </div>
+      )}
+
+      {/* VISTAS PRINCIPALES (PANTALLA COMPLETA) */}
+      <main className="mt-3">
+        {view === "instrumentos" && (
+          <InstrumentoList
+            instrumentos={instrumentos}
+            onNavigateToMantenimientos={() => setView("mantenimientos")} // <-- CONEXIÓN AGREGADA AQUÍ
+            onNew={() => {
+              setInstrumentoEdit(null);
+              setShowInstrumentoModal(true);
+            }}
+            onEdit={(i) => {
+              setInstrumentoEdit(i);
+              setShowInstrumentoModal(true);
+            }}
+            onDelete={async (id) => {
+              await fetch(`${API_URL}/instrumentos/${id}`, {
+                method: "DELETE",
+                headers: getHeaders(),
+              });
+              handleRefresh();
+              showToast("Instrumento eliminado");
             }}
           />
-        </div>
+        )}
 
-        <div className="col-md-9">
-          {loading && (
-            <div className="text-center py-2">
-              <div
-                className="spinner-border spinner-border-sm text-primary"
-                role="status"
-              >
-                <span className="visually-hidden">Actualizando...</span>
-              </div>
-              <span className="ms-2 text-muted small">
-                Actualizando...
-              </span>
-            </div>
-          )}
-          <div className="card p-3 shadow-sm">
+        {view === "clientes" && (
+          <ClienteList
+            clientes={clientes}
+            instrumentos={instrumentos}
+            onRefresh={handleRefresh}
+            onDelete={async (id) => {
+              await fetch(`${API_URL}/clientes/${id}`, {
+                method: "DELETE",
+                headers: getHeaders(),
+              });
+              handleRefresh();
+              showToast("Cliente eliminado");
+            }}
+          />
+        )}
 
-            {view === "instrumentos" && (
-              <InstrumentoList
-                instrumentos={instrumentos}
-                onNew={() => { 
-                  setInstrumentoEdit(null);
-                  setShowInstrumentoModal(true);
-                }}
-                onEdit={(i) => {
-                  setInstrumentoEdit(i);
-                  setShowInstrumentoModal(true);
-                }}
-                onDelete={async(id) => {
-                  await fetch(`${API_URL}/instrumentos/${id}`, {
-                    method: "DELETE",
-                    headers: getHeaders(),
-                  });
+        {view === "servicios" && (
+          <ServiciosTercerosList
+            servicios={servicios}
+            onCreate={() => {
+              setServicioEdit(null);
+              setShowServicioModal(true);
+            }}
+            onEdit={(s) => {
+              setServicioEdit(s);
+              setShowServicioModal(true);
+            }}
+            onDelete={async (id) => {
+              if (!window.confirm("¿Eliminar servicio?")) return;
 
-                  handleRefresh();
-                  showToast("Instrumento eliminado");
+              await fetch(`${API_URL}/servicios-terceros/${id}`, {
+                method: "DELETE",
+                headers: getHeaders(),
+              });
 
-                }}
-              />
-            )}
+              handleRefresh();
+              showToast("Servicio eliminado");
+            }}
+          />
+        )}
 
-            {view === "clientes" && (
-              <ClienteList 
-                clientes={clientes} 
-                instrumentos={instrumentos}
-                onRefresh={handleRefresh}
-                onDelete={async (id) => {
-                  await fetch(`${API_URL}/clientes/${id}`, {
-                    method: "DELETE",
-                    headers: getHeaders(),
-                  });
-                  handleRefresh();
-                  showToast("Cliente eliminado");
-                }}
-              />
-            )}
+        {view === "repuestos" && (
+          <RepuestosList repuestos={repuestos} onRefresh={handleRefresh} />
+        )}
 
-            {view === "servicios" && (
-              <ServiciosTercerosList
-                servicios={servicios}
-                onCreate={() => {
-                  setServicioEdit(null);
-                  setShowServicioModal(true);
-                }}
-                onEdit={(s) => {
-                  setServicioEdit(s);
-                  setShowServicioModal(true);
-                }}
-                onDelete={async (id) => {
-                  if (!window.confirm("¿Eliminar servicio?")) return;
+        {view === "tareas" && (
+          <TareasList
+            tareas={tareas}
+            onEdit={handleEditTarea}
+            onDelete={async (id) => {
+              await fetch(`${API_URL}/tareas/${id}`, {
+                method: "DELETE",
+                headers: getHeaders(),
+              });
+              handleRefresh();
+              showToast("Tarea eliminada");
+            }}
+            onNew={handleNewTarea}
+            onUpdateEstado={handleUpdateEstadoTarea}
+          />
+        )}
 
-                  await fetch(`${API_URL}/servicios-terceros/${id}`, {
-                    method: "DELETE",
-                    headers: getHeaders(),
-                  });
+        {view === "casos" && (
+          <CasoList
+            casos={casos}
+            onRefresh={handleRefresh}
+          />
+        )}
 
-                  handleRefresh();
-                  showToast("Servicio eliminado");
-                }}
-              />
-            )}
-
-            {view === "repuestos" && (
-              <RepuestosList repuestos={repuestos} onRefresh={handleRefresh} />
-            )}
-
-            {view === "tareas" && (
-              <TareasList
-                tareas={tareas}
-                onEdit={handleEditTarea}
-                onDelete={async (id) => {
-                  await fetch(`${API_URL}/tareas/${id}`, {
-                    method: "DELETE",
-                    headers: getHeaders(),
-                  });
-
-                  handleRefresh();
-                }}
-                onNew={handleNewTarea}
-              />
-            )}
-
-            {view === "casos" && (
-              <CasoList
-                casos={casos}
-                onRefresh={handleRefresh}
-              />
-            )}
-
-            {view === "mantenimientos" && (
-              <MantenimientosList
-                instrumentos={instrumentos}
-                filtroInicial={mantenimientoFiltro}
-                onEdit={(instrumento) => {
-                  setInstrumentoEdit(instrumento);
-                  setShowInstrumentoModal(true);
-                }}
-                onRegistrarMantenimiento={(instrumento) => {
-                  setMantenimientoEdit(instrumento);
-                }}
-              />
-            )}
-
-          </div>
-        </div>
-      </div>
+        {view === "mantenimientos" && (
+          <MantenimientosList
+            instrumentos={instrumentos}
+            filtroInicial={mantenimientoFiltro}
+            onEdit={(instrumento) => {
+              setInstrumentoEdit(instrumento);
+              setShowInstrumentoModal(true);
+            }}
+            onRegistrarMantenimiento={(instrumento) => {
+              setMantenimientoEdit(instrumento);
+            }}
+          />
+        )}
+      </main>
 
       {/* MODALES */}
 
@@ -386,9 +383,7 @@ function App() {
       )}
 
       {mantenimientoEdit && (
-        <Modal
-          onClose={() => setMantenimientoEdit(null)}
-        >
+        <Modal onClose={() => setMantenimientoEdit(null)}>
           <RegistrarMantenimientoModal
             instrumento={mantenimientoEdit}
             onUpdated={() => {
@@ -396,18 +391,19 @@ function App() {
               handleRefresh();
               showToast("Mantenimiento registrado");
             }}
-            onClose={() => {
-              setMantenimientoEdit(null);
-            }}
+            onClose={() => setMantenimientoEdit(null)}
           />
         </Modal>
       )}
 
       {/* TOAST */}
       {toast && (
-        <div className={`position-fixed bottom-0 end-0 m-3 alert ${
-          toast.type === "success" ? "alert-success" : "alert-danger"
-        } shadow`}>
+        <div
+          className={`position-fixed bottom-0 end-0 m-3 alert ${
+            toast.type === "success" ? "alert-success" : "alert-danger"
+          } shadow`}
+          style={{ zIndex: 1050 }}
+        >
           {toast.message}
         </div>
       )}
