@@ -67,7 +67,26 @@ function App() {
     return token ? { Authorization: `Bearer ${token}` } : {};
   };
 
-  const safeJson = async (res) => {
+  const logout = () => {
+    localStorage.removeItem("token");
+    setAuth(false); 
+    setInstrumentos([]);
+    setClientes([]);
+    setServicios([]);
+    setRepuestos([]);
+    setTareas([]);
+    setCasos([]);
+  };
+
+  
+
+const safeJson = async (res) => {
+    if (res.status === 401) {
+      localStorage.removeItem("token");
+      setAuth(false);
+      window.location.reload(); // Recarga la página para limpiar estados residuales y llevar al login
+      return [];
+    }
     const text = await res.text();
     try {
       return JSON.parse(text);
@@ -136,16 +155,7 @@ function App() {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    setAuth(false);
-    setInstrumentos([]);
-    setClientes([]);
-    setServicios([]);
-    setRepuestos([]);
-    setTareas([]);
-    setCasos([]);
-  };
+
 
   if (!auth) {
     return <Login onLogin={() => setAuth(true)} />;
