@@ -1,5 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 
+import "./App.css";
+
 import Header from "./components/Header";
 
 import ClienteList from "./components/ClienteList";

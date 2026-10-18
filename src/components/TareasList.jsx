@@ -21,6 +21,28 @@ export default function TareasList({
   );
 
   // =========================
+  // RESUMEN DE TAREAS (KPIs)
+  // =========================
+  const resumenTareas = useMemo(() => {
+    const resumen = {
+      total: tareas.length,
+      pendiente: 0,
+      enProceso: 0,
+      finalizada: 0,
+      cancelada: 0,
+    };
+
+    tareas.forEach((t) => {
+      if (t.estado === "Pendiente") resumen.pendiente++;
+      else if (t.estado === "En proceso") resumen.enProceso++;
+      else if (t.estado === "Finalizada") resumen.finalizada++;
+      else if (t.estado === "Cancelada") resumen.cancelada++;
+    });
+
+    return resumen;
+  }, [tareas]);
+
+  // =========================
   // HELPERS
   // =========================
   const getCliente = (t) => {
@@ -49,6 +71,22 @@ export default function TareasList({
       return fecha;
     }
     return new Date(fecha).toLocaleDateString("es-AR");
+  };
+
+  // Clase de color de fondo para la fila según la prioridad
+  const getFilaPrioridadClase = (prioridad) => {
+    switch (prioridad) {
+      case "Urgente":
+        return "table-danger bg-opacity-10"; // Rojo muy suave
+      case "Alta":
+        return "table-warning bg-opacity-10"; // Amarillo/Naranja muy suave
+      case "Media":
+        return "table-primary bg-opacity-10"; // Azul muy suave
+      case "Baja":
+        return ""; // Fondo normal por defecto
+      default:
+        return "";
+    }
   };
 
   // =========================
@@ -238,198 +276,270 @@ export default function TareasList({
   // RENDER
   // =========================
   return (
-    <div className="card p-3 shadow-sm border-0 rounded-3">
+    <div className="container-fluid p-0">
       
-      {/* ================= HEADER ================= */}
-      <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <h5 className="m-0 text-dark fw-bold">
-          📋 Listado de Tareas <span className="text-muted fs-6">({filtradas.length})</span>
-        </h5>
-
-        <div className="d-flex gap-2 flex-grow-1 justify-content-end flex-wrap">
-          <input
-            type="text"
-            className="form-control"
-            placeholder="🔎 Buscar tarea, cliente o instrumento..."
-            style={{ maxWidth: 300, minWidth: 200 }}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-
-          <button
-            className="btn btn-outline-secondary d-flex align-items-center gap-1"
-            onClick={exportarExcel}
-            disabled={filtradas.length === 0}
-            title="Exportar a Excel"
+      {/* ================================================== */}
+      {/* TARJETAS DE RESUMEN / KPIS CLICKEABLES             */}
+      {/* ================================================== */}
+      <div className="row g-2 mb-3">
+        <div className="col">
+          <div 
+            className={`card border-0 shadow-sm p-3 bg-white rounded-3 ${estadoFiltro === '' ? 'border-start border-4 border-primary' : ''}`}
+            onClick={() => setEstadoFiltro("")}
+            style={{ cursor: "pointer" }}
+            title="Ver todas"
           >
-            <i className="bi bi-file-earmark-excel"></i> Exportar
-          </button>
+            <span className="text-muted small fw-semibold">Total Tareas</span>
+            <span className="fs-4 fw-bold text-dark">{resumenTareas.total}</span>
+          </div>
+        </div>
 
-          <button
-            className="btn btn-success d-flex align-items-center gap-1 text-nowrap px-3"
-            onClick={() => onNew?.()}
-            title="Nueva Tarea"
+        <div className="col">
+          <div 
+            className={`card border-0 shadow-sm p-3 bg-white rounded-3 ${estadoFiltro === 'Pendiente' ? 'border-start border-4 border-secondary' : ''}`}
+            onClick={() => setEstadoFiltro("Pendiente")}
+            style={{ cursor: "pointer" }}
+            title="Filtrar Pendientes"
           >
-            <i className="bi bi-plus-circle"></i> Nuevo
-          </button>
+            <span className="text-secondary small fw-semibold">Pendientes</span>
+            <span className="fs-4 fw-bold text-secondary">{resumenTareas.pendiente}</span>
+          </div>
+        </div>
+
+        <div className="col">
+          <div 
+            className={`card border-0 shadow-sm p-3 bg-white rounded-3 ${estadoFiltro === 'En proceso' ? 'border-start border-4 border-primary' : ''}`}
+            onClick={() => setEstadoFiltro("En proceso")}
+            style={{ cursor: "pointer" }}
+            title="Filtrar En proceso"
+          >
+            <span className="text-primary small fw-semibold">En Proceso</span>
+            <span className="fs-4 fw-bold text-primary">{resumenTareas.enProceso}</span>
+          </div>
+        </div>
+
+        <div className="col">
+          <div 
+            className={`card border-0 shadow-sm p-3 bg-white rounded-3 ${estadoFiltro === 'Finalizada' ? 'border-start border-4 border-success' : ''}`}
+            onClick={() => setEstadoFiltro("Finalizada")}
+            style={{ cursor: "pointer" }}
+            title="Filtrar Finalizadas"
+          >
+            <span className="text-success small fw-semibold">Finalizadas</span>
+            <span className="fs-4 fw-bold text-success">{resumenTareas.finalizada}</span>
+          </div>
+        </div>
+
+        <div className="col">
+          <div 
+            className={`card border-0 shadow-sm p-3 bg-white rounded-3 ${estadoFiltro === 'Cancelada' ? 'border-start border-4 border-danger' : ''}`}
+            onClick={() => setEstadoFiltro("Cancelada")}
+            style={{ cursor: "pointer" }}
+            title="Filtrar Canceladas"
+          >
+            <span className="text-danger small fw-semibold">Canceladas</span>
+            <span className="fs-4 fw-bold text-danger">{resumenTareas.cancelada}</span>
+          </div>
         </div>
       </div>
 
-      {/* ================= FILTROS Y BOTÓN CALENDARIO ================= */}
-      <div className="d-flex gap-2 mb-3 flex-wrap align-items-center justify-content-between">
-        <div className="d-flex gap-2 flex-wrap flex-grow-1">
-          <select
-            className="form-select"
-            value={estadoFiltro}
-            onChange={(e) => setEstadoFiltro(e.target.value)}
-            style={{ maxWidth: 200 }}
-          >
-            <option value="">Todos los estados</option>
-            <option value="Pendiente">Pendiente</option>
-            <option value="En proceso">En proceso</option>
-            <option value="Finalizada">Finalizada</option>
-            <option value="Cancelada">Cancelada</option>
-          </select>
+      {/* ================================================== */}
+      {/* TARJETA PRINCIPAL Y FILTROS                       */}
+      {/* ================================================== */}
+      <div className="card p-3 shadow-sm border-0 rounded-3">
+        
+        {/* HEADER */}
+        <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <h5 className="m-0 text-dark fw-bold">
+            📋 Listado de Tareas <span className="text-muted fs-6">({filtradas.length})</span>
+          </h5>
 
-          <select
-            className="form-select"
-            value={prioridadFiltro}
-            onChange={(e) => setPrioridadFiltro(e.target.value)}
-            style={{ maxWidth: 200 }}
-          >
-            <option value="">Todas las prioridades</option>
-            <option value="Urgente">Urgente</option>
-            <option value="Alta">Alta</option>
-            <option value="Media">Media</option>
-            <option value="Baja">Baja</option>
-          </select>
+          <div className="d-flex gap-2 flex-grow-1 justify-content-end flex-wrap">
+            <input
+              type="text"
+              className="form-control"
+              placeholder="🔎 Buscar tarea, cliente o instrumento..."
+              style={{ maxWidth: 300, minWidth: 200 }}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
 
-          <select
-            className="form-select"
-            value={responsableFiltro}
-            onChange={(e) => setResponsableFiltro(e.target.value)}
-            style={{ maxWidth: 220 }}
-          >
-            <option value="">Todos los responsables</option>
-            <option value="Vaccaro Sebastián">Vaccaro Sebastián</option>
-            <option value="Correas Gustavo">Correas Gustavo</option>
-            <option value="Orlandi Matías">Orlandi Matías</option>
-            <option value="Gerbaudo Leandro">Gerbaudo Leandro</option>
-          </select>
+            <button
+              className="btn btn-outline-secondary d-flex align-items-center gap-1"
+              onClick={exportarExcel}
+              disabled={filtradas.length === 0}
+              title="Exportar a Excel"
+            >
+              <i className="bi bi-file-earmark-excel"></i> Exportar
+            </button>
+
+            <button
+              className="btn btn-success d-flex align-items-center gap-1 text-nowrap px-3"
+              onClick={() => onNew?.()}
+              title="Nueva Tarea"
+            >
+              <i className="bi bi-plus-circle"></i> Nuevo
+            </button>
+          </div>
         </div>
 
-        <button
-          className="btn btn-outline-primary d-flex align-items-center gap-1 px-3 shadow-sm"
-          onClick={() => setShowCalendario(true)}
-          title="Ver Calendario Mensual"
-        >
-          <i className="bi bi-calendar3"></i> Calendario
-        </button>
-      </div>
+        {/* FILTROS Y BOTÓN CALENDARIO */}
+        <div className="d-flex gap-2 mb-3 flex-wrap align-items-center justify-content-between">
+          <div className="d-flex gap-2 flex-wrap flex-grow-1">
+            <select
+              className="form-select"
+              value={estadoFiltro}
+              onChange={(e) => setEstadoFiltro(e.target.value)}
+              style={{ maxWidth: 200 }}
+            >
+              <option value="">Todos los estados</option>
+              <option value="Pendiente">Pendiente</option>
+              <option value="En proceso">En proceso</option>
+              <option value="Finalizada">Finalizada</option>
+              <option value="Cancelada">Cancelada</option>
+            </select>
 
-      {/* ================= TABLA SIN SCROLL INTERNO ================= */}
-      <div className="table-responsive border rounded-3 shadow-sm">
-        <table className="table table-hover align-middle mb-0">
-          <thead className="table-dark text-nowrap">
-            <tr>
-              <th style={{ width: "12%" }} className="py-3">Fecha</th>
-              <th style={{ width: "25%" }} className="py-3">Cliente</th>
-              <th style={{ width: "25%" }} className="py-3">Instrumento</th>
-              <th className="text-center py-3" style={{ width: "12%" }}>Estado</th>
-              <th className="text-center py-3" style={{ width: "16%" }}>Responsable</th>
-              <th className="text-center py-3" style={{ width: "10%" }}>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtradas.length === 0 ? (
+            <select
+              className="form-select"
+              value={prioridadFiltro}
+              onChange={(e) => setPrioridadFiltro(e.target.value)}
+              style={{ maxWidth: 200 }}
+            >
+              <option value="">Todas las prioridades</option>
+              <option value="Urgente">Urgente</option>
+              <option value="Alta">Alta</option>
+              <option value="Media">Media</option>
+              <option value="Baja">Baja</option>
+            </select>
+
+            <select
+              className="form-select"
+              value={responsableFiltro}
+              onChange={(e) => setResponsableFiltro(e.target.value)}
+              style={{ maxWidth: 220 }}
+            >
+              <option value="">Todos los responsables</option>
+              <option value="Vaccaro Sebastián">Vaccaro Sebastián</option>
+              <option value="Correas Gustavo">Correas Gustavo</option>
+              <option value="Orlandi Matías">Orlandi Matías</option>
+              <option value="Gerbaudo Leandro">Gerbaudo Leandro</option>
+            </select>
+          </div>
+
+          <button
+            className="btn btn-outline-primary d-flex align-items-center gap-1 px-3 shadow-sm"
+            onClick={() => setShowCalendario(true)}
+            title="Ver Calendario Mensual"
+          >
+            <i className="bi bi-calendar3"></i> Calendario
+          </button>
+        </div>
+
+        {/* TABLA DE TAREAS */}
+        <div className="table-responsive border rounded-3 shadow-sm">
+          <table className="table table-hover align-middle mb-0">
+            <thead className="table-dark text-nowrap">
               <tr>
-                <td colSpan="6" className="text-center text-muted py-5">
-                  <i className="bi bi-folder2-open fs-1 d-block mb-2 opacity-50"></i>
-                  No se encontraron tareas registradas con los filtros actuales
-                </td>
+                <th style={{ width: "12%" }} className="py-3">Fecha</th>
+                <th style={{ width: "25%" }} className="py-3">Cliente</th>
+                <th style={{ width: "25%" }} className="py-3">Instrumento</th>
+                <th className="text-center py-3" style={{ width: "12%" }}>Estado</th>
+                <th className="text-center py-3" style={{ width: "16%" }}>Responsable</th>
+                <th className="text-center py-3" style={{ width: "10%" }}>Acciones</th>
               </tr>
-            ) : (
-              filtradas.map((t) => {
-                const finalizada = t.estado === "Finalizada";
+            </thead>
+            <tbody>
+              {filtradas.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="text-center text-muted py-5">
+                    <i className="bi bi-folder2-open fs-1 d-block mb-2 opacity-50"></i>
+                    No se encontraron tareas registradas con los filtros actuales
+                  </td>
+                </tr>
+              ) : (
+                filtradas.map((t) => {
+                  const finalizada = t.estado === "Finalizada";
 
-                return (
-                  <tr
-                    key={t._id}
-                    className={finalizada ? "opacity-50" : ""}
-                  >
-                    <td className="fw-semibold text-dark">{formatearFecha(t.fecha)}</td>
-                    <td className="text-truncate fw-semibold text-dark" style={{ maxWidth: "220px" }} title={getCliente(t)}>
-                      <i className="bi bi-building text-muted me-1"></i>
-                      {getCliente(t)}
-                    </td>
-                    <td>
-                      {t.instrumento ? (
-                        typeof t.instrumento === "object" ? (
-                          <div className="text-truncate" style={{ maxWidth: "250px" }} title={`${t.instrumento.descripcion || ""} - SN: ${t.instrumento.numeroSerie || ""}`}>
-                            <span className="fw-semibold text-dark">{t.instrumento.descripcion || "Sin descripción"}</span>
-                            <div className="text-muted" style={{ fontSize: "0.75rem" }}>
-                              SN: {t.instrumento.numeroSerie || "—"}
+                  return (
+                    <tr
+                      key={t._id}
+                      className={`${finalizada ? "opacity-50" : getFilaPrioridadClase(t.prioridad)}`}                    
+                    >
+                      <td className="fw-semibold text-dark">{formatearFecha(t.fecha)}</td>
+                      <td className="text-truncate fw-semibold text-dark" style={{ maxWidth: "220px" }} title={getCliente(t)}>
+                        <i className="bi bi-building text-muted me-1"></i>
+                        {getCliente(t)}
+                      </td>
+                      <td>
+                        {t.instrumento ? (
+                          typeof t.instrumento === "object" ? (
+                            <div className="text-truncate" style={{ maxWidth: "250px" }} title={`${t.instrumento.descripcion || ""} - SN: ${t.instrumento.numeroSerie || ""}`}>
+                              <span className="fw-semibold text-dark">{t.instrumento.descripcion || "Sin descripción"}</span>
+                              <div className="text-muted" style={{ fontSize: "0.75rem" }}>
+                                SN: {t.instrumento.numeroSerie || "—"}
+                              </div>
                             </div>
-                          </div>
+                          ) : (
+                            t.instrumento
+                          )
                         ) : (
-                          t.instrumento
-                        )
-                      ) : (
-                        <span className="text-muted">—</span>
-                      )}
-                    </td>
-                    <td className="text-center">
-                      <span className={`badge rounded-pill px-3 py-1 fw-semibold ${badgeEstadoClase(t.estado)}`} style={{ fontSize: "0.75rem" }}>
-                        {t.estado}
-                      </span>
-                    </td>
-                    
-                    {/* FUENTE EN BLANCO EN EL BADGE DEL RESPONSABLE */}
-                    <td className="text-center">
-                      {t.responsable ? (
-                        <span
-                          className="badge rounded-pill bg-primary text-white px-2 py-1 shadow-sm"
-                          title={t.responsable}
-                          style={{ fontSize: "0.75rem" }}
-                        >
-                          <i className="bi bi-person-fill me-1"></i>
-                          {t.responsable}
+                          <span className="text-muted">—</span>
+                        )}
+                      </td>
+                      <td className="text-center">
+                        <span className={`badge rounded-pill px-3 py-1 fw-semibold ${badgeEstadoClase(t.estado)}`} style={{ fontSize: "0.75rem" }}>
+                          {t.estado}
                         </span>
-                      ) : (
-                        <span className="text-muted">—</span>
-                      )}
-                    </td>
+                      </td>
+                      <td className="text-center">
+                        {t.responsable ? (
+                          <span
+                            className="badge rounded-pill bg-primary text-white px-2 py-1 shadow-sm"
+                            title={t.responsable}
+                            style={{ fontSize: "0.75rem" }}
+                          >
+                            <i className="bi bi-person-fill me-1"></i>
+                            {t.responsable}
+                          </span>
+                        ) : (
+                          <span className="text-muted">—</span>
+                        )}
+                      </td>
 
-                    <td className="text-center text-nowrap">
-                      <div className="d-flex justify-content-center gap-1">
-                        <button
-                          className="btn btn-sm btn-light border text-primary shadow-sm"
-                          title="Ver / Editar"
-                          onClick={() => onEdit?.(t)}
-                        >
-                          <i className="bi bi-pencil-fill"></i>
-                        </button>
-                        <button
-                          className="btn btn-sm btn-light border text-danger shadow-sm"
-                          title="Eliminar"
-                          onClick={() => onDelete?.(t._id)}
-                        >
-                          <i className="bi bi-trash-fill"></i>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
+                      <td className="text-center text-nowrap">
+                        <div className="d-flex justify-content-center gap-1">
+                          <button
+                            className="btn btn-sm btn-light border text-primary shadow-sm"
+                            title="Ver / Editar"
+                            onClick={() => onEdit?.(t)}
+                          >
+                            <i className="bi bi-pencil-fill"></i>
+                          </button>
+                          <button
+                            className="btn btn-sm btn-light border text-danger shadow-sm"
+                            title="Eliminar"
+                            onClick={() => onDelete?.(t._id)}
+                          >
+                            <i className="bi bi-trash-fill"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+
       </div>
 
-      {/* ================= MODAL DE CALENDARIO MENSUAL ================= */}
+      {/* ================================================== */}
+      {/* MODAL DE CALENDARIO MENSUAL                       */}
+      {/* ================================================== */}
       {showCalendario && (
         <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-          <div className="modal-dialog modal-lg modal-dialog-centered"> {/* 👈 Cambiado a modal-lg */}
+          <div className="modal-dialog modal-lg modal-dialog-centered">
             <div className="modal-content border-0 shadow">
               <div className="modal-header bg-dark text-white py-2">
                 <h5 className="modal-title fw-bold fs-6">
@@ -442,7 +552,7 @@ export default function TareasList({
                 ></button>
               </div>
 
-              <div className="modal-body p-3"> {/* 👈 Padding reducido */}
+              <div className="modal-body p-3">
                 {/* LEYENDA DE PRIORIDADES */}
                 <div className="d-flex gap-3 mb-2 justify-content-end align-items-center small">
                   <span className="fw-bold me-1 text-muted">Prioridades:</span>
@@ -497,14 +607,14 @@ export default function TareasList({
                       <div className="col text-primary">Dom</div>
                     </div>
 
-                    <div className="row g-1" style={{ minHeight: "260px" }}> {/* 👈 Altura mínima reducida */}
+                    <div className="row g-1" style={{ minHeight: "260px" }}>
                       {diasDelMes.map((item, index) => {
                         const fechaStr = item.fecha.toISOString().split("T")[0];
                         const { total, prioridadMaxima } = obtenerInfoTareasFecha(item.fecha);
                         const esSeleccionado = fechaSeleccionada === fechaStr;
 
                         return (
-                          <div className="col-12" style={{ width: "14.28%", height: "48px" }} key={index}> {/* 👈 Altura de celda más compacta (48px) */}
+                          <div className="col-12" style={{ width: "14.28%", height: "48px" }} key={index}>
                             <button
                               type="button"
                               onClick={() => setFechaSeleccionada(fechaStr)}
@@ -546,7 +656,7 @@ export default function TareasList({
                       </span>
                     </div>
 
-                    <div style={{ maxHeight: "280px", overflowY: "auto" }} className="d-flex flex-column gap-2 pe-1"> {/* 👈 Altura máxima reducida */}
+                    <div style={{ maxHeight: "280px", overflowY: "auto" }} className="d-flex flex-column gap-2 pe-1">
                       {tareasPorFecha.length === 0 ? (
                         <div className="text-center text-muted py-4 my-auto small">
                           <i className="bi bi-calendar-x fs-3 d-block mb-1 opacity-50"></i>
@@ -580,7 +690,6 @@ export default function TareasList({
                                 Resp: <b className="text-dark">{t.responsable || "—"}</b>
                               </span>
 
-                              {/* ACCIONES DIRECTAS */}
                               <div className="d-flex gap-1">
                                 {onUpdateEstado && t.estado !== "Finalizada" && (
                                   <button

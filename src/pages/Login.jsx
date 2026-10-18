@@ -225,7 +225,7 @@ export default function Login({ onLogin }) {
           {/* FOOTER */}
           <div className="text-center mt-4 pt-3 border-top">
             <small className="text-muted" style={{ fontSize: "0.75rem" }}>
-              Sistema ST v3.0 (Octubre 2026)
+              Sistema ST v3.1 (Octubre 2026)
             </small>
           </div>
         </div>

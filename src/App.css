@@ -1,202 +1,160 @@
-.counter {
-  font-size: 16px;
-  padding: 5px 10px;
-  border-radius: 5px;
-  color: var(--accent);
-  background: var(--accent-bg);
-  border: 2px solid transparent;
-  transition: border-color 0.3s;
-  margin-bottom: 24px;
+/* ==========================================
+   VARIABLES Y BASE
+   ========================================== */
+:root {
+  --primary-color: #0d6efd;
+  --primary-hover: #0b5ed7;
+  --secondary-color: #6c757d;
+  --success-color: #198754;
+  --danger-color: #dc3545;
+  --warning-color: #ffc107;
+  --info-color: #0dcaf0;
+  --dark-color: #212529;
+  --light-bg: #f8f9fa;
+  --transition-speed: 0.2s;
+}
 
-  &:hover {
-    border-color: var(--accent-border);
+body {
+  background-color: #f4f6f9;
+  color: #333;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ==========================================
+   MICROINTERACCIONES Y TABLAS
+   ========================================== */
+.table-hover tbody tr {
+  transition: background-color var(--transition-speed) ease-in-out,
+              transform var(--transition-speed) ease-in-out,
+              box-shadow var(--transition-speed) ease-in-out;
+}
+
+.table-hover tbody tr:hover {
+  background-color: rgba(13, 110, 253, 0.035) !important;
+  transform: translateY(-1px);
+}
+
+.table thead th {
+  font-size: 0.825rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 700;
+}
+
+/* ==========================================
+   TARJETAS DE RESUMEN (KPIs)
+   ========================================== */
+.kpi-card {
+  transition: transform var(--transition-speed) ease,
+              box-shadow var(--transition-speed) ease,
+              border-color var(--transition-speed) ease;
+  user-select: none;
+}
+
+.kpi-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0.5rem 1.2rem rgba(0, 0, 0, 0.08) !important;
+}
+
+.kpi-card:active {
+  transform: translateY(-1px);
+}
+
+/* ==========================================
+   ANIMACIÓN DE PULSO PARA URGENTES / ALERTAS
+   ========================================== */
+@keyframes pulse-urgente {
+  0% {
+    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4);
   }
-  &:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
+  70% {
+    box-shadow: 0 0 0 8px rgba(220, 53, 69, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
   }
 }
 
-.hero {
-  position: relative;
-
-  .base,
-  .framework,
-  .vite {
-    inset-inline: 0;
-    margin: 0 auto;
-  }
-
-  .base {
-    width: 170px;
-    position: relative;
-    z-index: 0;
-  }
-
-  .framework,
-  .vite {
-    position: absolute;
-  }
-
-  .framework {
-    z-index: 1;
-    top: 34px;
-    height: 28px;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg)
-      scale(1.4);
-  }
-
-  .vite {
-    z-index: 0;
-    top: 107px;
-    height: 26px;
-    width: auto;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg)
-      scale(0.8);
-  }
+.badge-urgente-pulse {
+  animation: pulse-urgente 2s infinite;
 }
 
-#center {
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-  flex-grow: 1;
-
-  @media (max-width: 1024px) {
-    padding: 32px 20px 24px;
-    gap: 18px;
-  }
-}
-
-#next-steps {
-  display: flex;
-  border-top: 1px solid var(--border);
-  text-align: left;
-
-  & > div {
-    flex: 1 1 0;
-    padding: 32px;
-    @media (max-width: 1024px) {
-      padding: 24px 20px;
-    }
-  }
-
-  .icon {
-    margin-bottom: 16px;
-    width: 22px;
-    height: 22px;
-  }
-
-  @media (max-width: 1024px) {
-    flex-direction: column;
-    text-align: center;
-  }
-}
-
-#docs {
-  border-right: 1px solid var(--border);
-
-  @media (max-width: 1024px) {
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-  }
-}
-
-#next-steps ul {
-  list-style: none;
-  padding: 0;
-  display: flex;
-  gap: 8px;
-  margin: 32px 0 0;
-
-  .logo {
-    height: 18px;
-  }
-
-  a {
-    color: var(--text-h);
-    font-size: 16px;
-    border-radius: 6px;
-    background: var(--social-bg);
-    display: flex;
-    padding: 6px 12px;
-    align-items: center;
-    gap: 8px;
-    text-decoration: none;
-    transition: box-shadow 0.3s;
-
-    &:hover {
-      box-shadow: var(--shadow);
-    }
-    .button-icon {
-      height: 18px;
-      width: 18px;
-    }
-  }
-
-  @media (max-width: 1024px) {
-    margin-top: 20px;
-    flex-wrap: wrap;
-    justify-content: center;
-
-    li {
-      flex: 1 1 calc(50% - 8px);
-    }
-
-    a {
-      width: 100%;
-      justify-content: center;
-      box-sizing: border-box;
-    }
-  }
-}
-
-#spacer {
-  height: 88px;
-  border-top: 1px solid var(--border);
-  @media (max-width: 1024px) {
-    height: 48px;
-  }
-}
-
-.ticks {
-  position: relative;
-  width: 100%;
-
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    top: -4.5px;
-    border: 5px solid transparent;
-  }
-
-  &::before {
-    left: 0;
-    border-left-color: var(--border);
-  }
-  &::after {
-    right: 0;
-    border-right-color: var(--border);
-  }
-}
-
-.modal-backdrop-custom {
-  position: fixed;      /* 👈 CLAVE */
-  inset: 0;             /* reemplaza top/left/width/height */
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
+/* ==========================================
+   CHIP / AVATAR PARA RESPONSABLES
+   ========================================== */
+.avatar-chip {
+  display: inline-flex;
   align-items: center;
-  z-index: 9999;        /* 👈 arriba de todo */
+  gap: 0.4rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 50rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: all var(--transition-speed) ease;
 }
 
-.modal-content-custom {
-  background: white;
-  padding: 20px;
-  border-radius: 12px;
-  width: 450px;
-  max-width: 95%;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+.avatar-chip:hover {
+  background-color: #ffffff !important;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
+.avatar-circle {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: white;
+  text-transform: uppercase;
+}
+
+/* ==========================================
+   FORMULARIOS Y CAMPOS FLOTANTES
+   ========================================== */
+.form-floating > .form-control:focus,
+.form-floating > .form-select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+}
+
+.form-floating > label {
+  color: #6c757d;
+  font-size: 0.875rem;
+}
+
+/* ==========================================
+   MODALES Y CONTENEDORES
+   ========================================== */
+.modal-content {
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+.modal-backdrop.show {
+  opacity: 0.6;
+  backdrop-filter: blur(2px);
+}
+
+/* Scrollbar personalizada suave */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #aaa;
+}
