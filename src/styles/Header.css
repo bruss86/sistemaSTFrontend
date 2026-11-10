@@ -3,6 +3,19 @@
   background-color: #ffffff;
 }
 
+/* 🟢 Estilos para escritorio (por defecto) */
+.nav-center {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: nowrap; /* 👈 Esto evita obligatoriamente que bajen a otra fila */
+}
+
+.nav-pill {
+  white-space: nowrap; /* Evita que el texto de los botones se rompa en dos líneas */
+}
+
+/* 📱 Estilos para dispositivos móviles */
 @media (max-width: 991.98px) {
   .nav-center {
     display: none;
@@ -11,7 +24,8 @@
     left: 0;
     right: 0;
     background: #ffffff;
-    flex-direction: column;
+    flex-direction: column; /* En móvil se despliegan en columna */
+    align-items: stretch;
     padding: 1rem;
     box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
     border-bottom: 1px solid #dee2e6;

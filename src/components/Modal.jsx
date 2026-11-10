@@ -36,6 +36,8 @@ const backdropStyle = {
   justifyContent: "center",
   alignItems: "center",
   zIndex: 1000,
+  overflowY: "auto", // 💡 Permite scroll si la pantalla es pequeña
+  padding: "20px",
 };
 
 const modalStyle = {
@@ -43,5 +45,9 @@ const modalStyle = {
   padding: "25px",
   borderRadius: "10px",
   width: "100%",
-  maxWidth: "500px",
+  maxWidth: "850px", // 💡 Aumentado para que entren holgadamente las dos columnas
+  maxHeight: "90vh",  // 💡 Evita que el modal sea más alto que la pantalla
+  display: "flex",
+  flexDirection: "column",
+  boxShadow: "0 10px 25px rgba(0,0,0,0.2)",
 };

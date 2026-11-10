@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 
 export default function TareasList({
@@ -13,12 +13,22 @@ export default function TareasList({
   const [responsableFiltro, setResponsableFiltro] = useState(""); 
   const [search, setSearch] = useState("");
   
+  // Paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
   // Estados para el Modal de Calendario Mensual
   const [showCalendario, setShowCalendario] = useState(false);
   const [fechaActualCalendario, setFechaActualCalendario] = useState(new Date());
   const [fechaSeleccionada, setFechaSeleccionada] = useState(
     new Date().toISOString().split("T")[0]
   );
+
+  // Estado para el modal de notificaciones / avisos (reemplaza los alert)
+  const [mensajeModal, setMensajeModal] = useState(null); // { titulo: "", texto: "", tipo: "success" | "danger" | "info" }
+
+  // Estado para el modal de confirmación de eliminación
+  const [tareaAEliminar, setTareaAEliminar] = useState(null);
 
   // =========================
   // RESUMEN DE TAREAS (KPIs)
@@ -124,6 +134,26 @@ export default function TareasList({
         return new Date(a.fecha || 0) - new Date(b.fecha || 0);
       });
   }, [tareas, estadoFiltro, prioridadFiltro, responsableFiltro, search]);
+
+  // =========================
+  // PAGINACIÓN
+  // =========================
+  const totalPages = Math.ceil(filtradas.length / itemsPerPage);
+
+  const paginatedTareas = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filtradas.slice(start, start + itemsPerPage);
+  }, [filtradas, currentPage, itemsPerPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, estadoFiltro, prioridadFiltro, responsableFiltro, itemsPerPage]);
+
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   // Tareas filtradas para la fecha seleccionada en el calendario
   const tareasPorFecha = useMemo(() => {
@@ -258,18 +288,33 @@ export default function TareasList({
   // EXPORTAR A EXCEL
   // =========================
   const exportarExcel = () => {
-    const datos = filtradas.map((t) => ({
-      Fecha: formatearFecha(t.fecha),
-      Cliente: getCliente(t),
-      Tarea: t.tarea || "—",
-      Estado: t.estado || "—",
-      Responsable: t.responsable || "—",
-    }));
+    try {
+      const datos = filtradas.map((t) => ({
+        Fecha: formatearFecha(t.fecha),
+        Cliente: getCliente(t),
+        Descripción: t.tarea || "—",
+        Estado: t.estado || "—",
+        Responsable: t.responsable || "—",
+      }));
 
-    const worksheet = XLSX.utils.json_to_sheet(datos);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Tareas");
-    XLSX.writeFile(workbook, "tareas.xlsx");
+      const worksheet = XLSX.utils.json_to_sheet(datos);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Tareas");
+      XLSX.writeFile(workbook, "tareas.xlsx");
+
+      setMensajeModal({
+        titulo: "Exportación Exitosa",
+        texto: "El archivo Excel de tareas se ha generado correctamente.",
+        tipo: "success"
+      });
+    } catch (error) {
+      console.error(error);
+      setMensajeModal({
+        titulo: "Error",
+        texto: "Hubo un error al exportar las tareas a Excel.",
+        tipo: "danger"
+      });
+    }
   };
 
   // =========================
@@ -440,24 +485,25 @@ export default function TareasList({
           <table className="table table-hover align-middle mb-0">
             <thead className="table-dark text-nowrap">
               <tr>
-                <th style={{ width: "12%" }} className="py-3">Fecha</th>
-                <th style={{ width: "25%" }} className="py-3">Cliente</th>
-                <th style={{ width: "25%" }} className="py-3">Instrumento</th>
-                <th className="text-center py-3" style={{ width: "12%" }}>Estado</th>
-                <th className="text-center py-3" style={{ width: "16%" }}>Responsable</th>
-                <th className="text-center py-3" style={{ width: "10%" }}>Acciones</th>
+                <th style={{ width: "10%" }} className="py-3">Fecha</th>
+                <th style={{ width: "20%" }} className="py-3">Cliente</th>
+                <th style={{ width: "20%" }} className="py-3">Instrumento</th>
+                <th style={{ width: "22%" }} className="py-3">Descripción</th>
+                <th className="text-center py-3" style={{ width: "10%" }}>Estado</th>
+                <th className="text-center py-3" style={{ width: "10%" }}>Responsable</th>
+                <th className="text-center py-3" style={{ width: "8%" }}>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {filtradas.length === 0 ? (
+              {paginatedTareas.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="text-center text-muted py-5">
+                  <td colSpan="7" className="text-center text-muted py-5">
                     <i className="bi bi-folder2-open fs-1 d-block mb-2 opacity-50"></i>
                     No se encontraron tareas registradas con los filtros actuales
                   </td>
                 </tr>
               ) : (
-                filtradas.map((t) => {
+                paginatedTareas.map((t) => {
                   const finalizada = t.estado === "Finalizada";
 
                   return (
@@ -466,14 +512,14 @@ export default function TareasList({
                       className={`${finalizada ? "opacity-50" : getFilaPrioridadClase(t.prioridad)}`}                    
                     >
                       <td className="fw-semibold text-dark">{formatearFecha(t.fecha)}</td>
-                      <td className="text-truncate fw-semibold text-dark" style={{ maxWidth: "220px" }} title={getCliente(t)}>
+                      <td className="text-truncate fw-semibold text-dark" style={{ maxWidth: "180px" }} title={getCliente(t)}>
                         <i className="bi bi-building text-muted me-1"></i>
                         {getCliente(t)}
                       </td>
                       <td>
                         {t.instrumento ? (
                           typeof t.instrumento === "object" ? (
-                            <div className="text-truncate" style={{ maxWidth: "250px" }} title={`${t.instrumento.descripcion || ""} - SN: ${t.instrumento.numeroSerie || ""}`}>
+                            <div className="text-truncate" style={{ maxWidth: "200px" }} title={`${t.instrumento.descripcion || ""} - SN: ${t.instrumento.numeroSerie || ""}`}>
                               <span className="fw-semibold text-dark">{t.instrumento.descripcion || "Sin descripción"}</span>
                               <div className="text-muted" style={{ fontSize: "0.75rem" }}>
                                 SN: {t.instrumento.numeroSerie || "—"}
@@ -485,6 +531,9 @@ export default function TareasList({
                         ) : (
                           <span className="text-muted">—</span>
                         )}
+                      </td>
+                      <td className="text-truncate text-secondary" style={{ maxWidth: "220px" }} title={t.tarea || ""}>
+                        {t.tarea || <span className="text-muted">—</span>}
                       </td>
                       <td className="text-center">
                         <span className={`badge rounded-pill px-3 py-1 fw-semibold ${badgeEstadoClase(t.estado)}`} style={{ fontSize: "0.75rem" }}>
@@ -518,7 +567,7 @@ export default function TareasList({
                           <button
                             className="btn btn-sm btn-light border text-danger shadow-sm"
                             title="Eliminar"
-                            onClick={() => onDelete?.(t._id)}
+                            onClick={() => setTareaAEliminar(t)}
                           >
                             <i className="bi bi-trash-fill"></i>
                           </button>
@@ -532,7 +581,110 @@ export default function TareasList({
           </table>
         </div>
 
+        {/* PAGINACIÓN */}
+        {totalPages > 1 && (
+          <div className="d-flex justify-content-between align-items-center mt-3 pt-2 border-top flex-wrap gap-2">
+            <div className="d-flex align-items-center gap-2">
+              <span className="text-muted small">Mostrar:</span>
+              <select
+                className="form-select form-select-sm"
+                style={{ width: "80px" }}
+                value={itemsPerPage}
+                onChange={(e) => setItemsPerPage(Number(e.target.value))}
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+            </div>
+
+            <div className="d-flex align-items-center gap-2">
+              <button
+                className="btn btn-sm btn-outline-secondary"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => p - 1)}
+              >
+                <i className="bi bi-chevron-left"></i>
+              </button>
+
+              <span className="small fw-bold">
+                Página {currentPage} de {totalPages || 1}
+              </span>
+
+              <button
+                className="btn btn-sm btn-outline-secondary"
+                disabled={currentPage === totalPages || totalPages === 0}
+                onClick={() => setCurrentPage((p) => p + 1)}
+              >
+                <i className="bi bi-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        )}
+
       </div>
+
+      {/* ================================================== */}
+      {/* 🗑️ MODAL DE CONFIRMACIÓN DE ELIMINACIÓN            */}
+      {/* ================================================== */}
+      {tareaAEliminar && (
+        <div 
+          className="modal show d-block" 
+          tabIndex="-1" 
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)", zIndex: 1070 }}
+        >
+          <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: "400px" }}>
+            <div className="modal-content shadow-lg border-0">
+              
+              <div className="modal-header bg-danger text-white py-2 px-3">
+                <h6 className="modal-title fw-bold m-0">
+                  <i className="bi bi-exclamation-triangle-fill me-2"></i>
+                  Confirmar Eliminación
+                </h6>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  aria-label="Cerrar"
+                  onClick={() => setTareaAEliminar(null)}
+                ></button>
+              </div>
+
+              <div className="modal-body p-3 text-center">
+                <p className="text-secondary small mb-1">
+                  ¿Estás seguro de que deseas eliminar permanentemente esta tarea?
+                </p>
+                <p className="fw-bold text-dark my-2 text-truncate" style={{ fontSize: "0.9rem" }}>
+                  "{tareaAEliminar.tarea || "Sin descripción"}"
+                </p>
+                <p className="text-muted" style={{ fontSize: "0.75rem" }}>
+                  Esta acción no se puede deshacer.
+                </p>
+              </div>
+
+              <div className="modal-footer py-2 px-3 bg-light border-top-0 d-flex justify-content-end gap-2">
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm px-3"
+                  onClick={() => setTareaAEliminar(null)}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger btn-sm px-3"
+                  onClick={() => {
+                    onDelete?.(tareaAEliminar._id);
+                    setTareaAEliminar(null);
+                  }}
+                >
+                  Sí, Eliminar
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ================================================== */}
       {/* MODAL DE CALENDARIO MENSUAL                       */}
@@ -716,7 +868,7 @@ export default function TareasList({
                                 <button
                                   className="btn btn-sm btn-light border text-danger shadow-sm p-1"
                                   title="Eliminar Tarea"
-                                  onClick={() => onDelete?.(t._id)}
+                                  onClick={() => setTareaAEliminar(t)}
                                 >
                                   <i className="bi bi-trash-fill" style={{ fontSize: "0.65rem" }}></i>
                                 </button>
@@ -746,6 +898,53 @@ export default function TareasList({
           </div>
         </div>
       )}
+
+      {/* ================================================== */}
+      {/* MODAL GENERAL DE AVISOS / ALERTAS                  */}
+      {/* ================================================== */}
+      {mensajeModal && (
+        <div 
+          className="modal show d-block" 
+          tabIndex="-1" 
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)", zIndex: 1080 }}
+        >
+          <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: "380px" }}>
+            <div className="modal-content shadow-lg border-0">
+              
+              <div className={`modal-header text-white py-2 px-3 bg-${mensajeModal.tipo === 'success' ? 'success' : mensajeModal.tipo === 'danger' ? 'danger' : 'primary'}`}>
+                <h6 className="modal-title fw-bold m-0">
+                  <i className={`bi ${mensajeModal.tipo === 'success' ? 'bi-check-circle-fill' : mensajeModal.tipo === 'danger' ? 'bi-exclamation-triangle-fill' : 'bi-info-circle-fill'} me-2`}></i>
+                  {mensajeModal.titulo}
+                </h6>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  aria-label="Cerrar"
+                  onClick={() => setMensajeModal(null)}
+                ></button>
+              </div>
+
+              <div className="modal-body p-3 text-center">
+                <p className="text-secondary small my-2" style={{ fontSize: "0.85rem" }}>
+                  {mensajeModal.texto}
+                </p>
+              </div>
+
+              <div className="modal-footer py-2 px-3 bg-light border-top-0 d-flex justify-content-center">
+                <button
+                  type="button"
+                  className={`btn btn-sm px-4 btn-${mensajeModal.tipo === 'success' ? 'success' : mensajeModal.tipo === 'danger' ? 'danger' : 'primary'}`}
+                  onClick={() => setMensajeModal(null)}
+                >
+                  Aceptar
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

@@ -9,10 +9,10 @@ export default function Header({ onLogout, view, setView }) {
     { key: "instrumentos", label: "Instrumentos", icon: <i className="bi bi-boxes"></i> },
     { key: "mantenimientos", label: "Mantenimientos", icon: <i className="bi bi-tools"></i> },
     { key: "clientes", label: "Clientes", icon: <i className="bi bi-person-square"></i> },
-    { key: "servicios", label: "Servicios T.", icon: <i className="bi bi-gear-wide-connected"></i> },
     { key: "repuestos", label: "Repuestos", icon: <i className="bi bi-gear"></i> },
     { key: "tareas", label: "Tareas", icon: <i className="bi bi-list-check"></i> },
-    { key: "casos", label: "Casos", icon: <i className="bi bi-bell-fill"></i> },
+    { key: "master", label: "Master List", icon: <i className="bi bi-card-checklist"></i> },
+    { key: "casos", label: "Casos", icon: <i className="bi bi-envelope"></i> },
   ];
 
   const handleChangeView = (key) => {
@@ -32,17 +32,17 @@ export default function Header({ onLogout, view, setView }) {
         </div>
 
         {/* MENU CENTRO (DESKTOP / MOBILE) */}
-        <div className={`nav-center ${menuOpen ? "open" : ""}`}>
+        <div className={`nav-center d-flex align-items-center gap-1 ${menuOpen ? "open" : ""}`}>
           {views.map((v) => (
             <button
               key={v.key}
-              className={`nav-pill btn btn-sm px-3 py-2 d-flex align-items-center gap-1 ${
+              className={`nav-pill btn btn-sm px-2 py-1 d-flex align-items-center gap-1 text-nowrap ${
                 view === v.key ? "btn-primary text-white fw-semibold" : "btn-light text-secondary border-0"
               }`}
               onClick={() => handleChangeView(v.key)}
             >
               <span>{v.icon}</span>
-              {v.label}
+              <span>{v.label}</span>
             </button>
           ))}
 
@@ -73,67 +73,67 @@ export default function Header({ onLogout, view, setView }) {
           </button>
         </div>
 
-        {/* MODAL DE LOGOUT */}
-        {showLogoutModal && (
-          <>
-            <div
-              className="modal fade show"
-              style={{ display: "block" }}
-              tabIndex="-1"
-            >
-              <div className="modal-dialog modal-dialog-centered">
-                <div className="modal-content border-0 shadow">
+      </div>
 
-                  <div className="modal-header bg-danger text-white">
-                    <h5 className="modal-title fw-bold">
-                      <i className="bi bi-box-arrow-right me-2"></i> Cerrar sesión
-                    </h5>
-                    <button
-                      type="button"
-                      className="btn-close btn-close-white"
-                      onClick={() => setShowLogoutModal(false)}
-                    />
-                  </div>
+      {/* MODAL DE LOGOUT */}
+      {showLogoutModal && (
+        <>
+          <div
+            className="modal fade show"
+            style={{ display: "block" }}
+            tabIndex="-1"
+          >
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content border-0 shadow">
 
-                  <div className="modal-body py-4">
-                    <p className="mb-0 text-secondary">
-                      ¿Está seguro de que desea cerrar la sesión actual?
-                    </p>
-                  </div>
-
-                  <div className="modal-footer bg-light">
-                    <button
-                      type="button"
-                      className="btn btn-secondary px-4"
-                      onClick={() => setShowLogoutModal(false)}
-                    >
-                      Cancelar
-                    </button>
-
-                    <button
-                      type="button"
-                      className="btn btn-danger px-4"
-                      onClick={() => {
-                        setShowLogoutModal(false);
-                        onLogout();
-                      }}
-                    >
-                      Cerrar sesión
-                    </button>
-                  </div>
-
+                <div className="modal-header bg-danger text-white">
+                  <h5 className="modal-title fw-bold">
+                    <i className="bi bi-box-arrow-right me-2"></i> Cerrar sesión
+                  </h5>
+                  <button
+                    type="button"
+                    className="btn-close btn-close-white"
+                    onClick={() => setShowLogoutModal(false)}
+                  />
                 </div>
+
+                <div className="modal-body py-4">
+                  <p className="mb-0 text-secondary">
+                    ¿Está seguro de que desea cerrar la sesión actual?
+                  </p>
+                </div>
+
+                <div className="modal-footer bg-light">
+                  <button
+                    type="button"
+                    className="btn btn-secondary px-4"
+                    onClick={() => setShowLogoutModal(false)}
+                  >
+                    Cancelar
+                  </button>
+
+                  <button
+                    type="button"
+                    className="btn btn-danger px-4"
+                    onClick={() => {
+                      setShowLogoutModal(false);
+                      onLogout();
+                    }}
+                  >
+                    Cerrar sesión
+                  </button>
+                </div>
+
               </div>
             </div>
+          </div>
 
-            <div
-              className="modal-backdrop fade show"
-              onClick={() => setShowLogoutModal(false)}
-            ></div>
-          </>
-        )}
-
-      </div>
+          <div
+            className="modal-backdrop fade show"
+            onClick={() => setShowLogoutModal(false)}
+          ></div>
+        </>
+      )}
 
     </header>
   );

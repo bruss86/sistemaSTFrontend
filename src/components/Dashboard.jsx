@@ -10,16 +10,24 @@ export default function Dashboard({ refresh, onNavigate }) {
   const [instrumentos, setInstrumentos] = useState([]);
   const [clientes, setClientes] = useState([]);
   const [tareas, setTareas] = useState([]);
+  const [casos, setCasos] = useState([]); // <-- Nuevo estado para casos
   const [loading, setLoading] = useState(true);
+
+  const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     const cargar = async () => {
       setLoading(true);
       try {
-        const [ins, cli, tar] = await Promise.all([
+        const token = localStorage.getItem("token");
+        const headers = { Authorization: `Bearer ${token}` };
+
+        // Añadimos la llamada para obtener los casos del backend
+        const [ins, cli, tar, casRes] = await Promise.all([
           getInstrumentos(),
           getClientes(),
           obtenerTareas(),
+          fetch(`${API_URL}/casos`, { headers }).then((res) => res.json()).catch(() => [])
         ]);
 
         setInstrumentos(
@@ -32,6 +40,10 @@ export default function Dashboard({ refresh, onNavigate }) {
 
         setTareas(
           Array.isArray(tar) ? tar : tar?.tareas || []
+        );
+
+        setCasos(
+          Array.isArray(casRes) ? casRes : []
         );
       } catch (error) {
         console.error("Error dashboard:", error);
@@ -51,7 +63,7 @@ export default function Dashboard({ refresh, onNavigate }) {
 
     if (
       typeof value === "string" &&
-      /^\d{4}-\d{2}-\d{2}\$/.test(value)
+      /^\d{4}-\d{2}-\d{2}$/.test(value)
     ) {
       const [year, month, day] = value.split("-").map(Number);
       return new Date(year, month - 1, day);
@@ -102,6 +114,7 @@ export default function Dashboard({ refresh, onNavigate }) {
     vencidos,
     proximos,
     tareasPendientes,
+    casosAbiertos,
   } = useMemo(() => {
     const vencidos = [];
     const proximos = [];
@@ -135,12 +148,18 @@ export default function Dashboard({ refresh, onNavigate }) {
       (t) => t.estado === "Pendiente" || !t.estado
     );
 
+    // Filtramos los casos que estén abiertos o en proceso
+    const casosAbiertos = casos.filter(
+      (c) => c.estado === "Abierto" || c.estado === "En Proceso"
+    );
+
     return {
       vencidos,
       proximos,
       tareasPendientes,
+      casosAbiertos,
     };
-  }, [instrumentos, tareas]);
+  }, [instrumentos, tareas, casos]);
 
   // ---------------------------------------------------------
   // Tarjetas principales
@@ -169,6 +188,14 @@ export default function Dashboard({ refresh, onNavigate }) {
       color: "#6f42c1",
       bg: "#f3e8ff",
       view: "tareas",
+    },
+    {
+      title: "Casos / Reclamos Abiertos",
+      value: casosAbiertos.length,
+      icon: "bi-chat-left-dots-fill",
+      color: "#fd7e14",
+      bg: "#fff3cd",
+      view: "casos", // <-- Apunta a la vista de casos
     },
     {
       title: "Mantenimientos próximos",
@@ -203,7 +230,7 @@ export default function Dashboard({ refresh, onNavigate }) {
     <div className="dashboard-container">
 
       {/* -------------------------------------------------- */}
-      {/* TARJETAS PRINCIPALES                               */}
+      {/* TARJETAS PRINCIPALES                              */}
       {/* -------------------------------------------------- */}
       {cards.map((c, i) => (
         <button
@@ -246,6 +273,22 @@ export default function Dashboard({ refresh, onNavigate }) {
       {/* ALERTAS INFERIORES CLICKEABLES                     */}
       {/* -------------------------------------------------- */}
       <div className="dashboard-status">
+
+        {/* Casos abiertos */}
+        {casosAbiertos.length > 0 && (
+          <div 
+            className="status-card warning" 
+            onClick={() => onNavigate("casos")} 
+            style={{ cursor: "pointer" }}
+            title="Ver casos y reclamos"
+          >
+            <div className="status-icon">📩</div>
+            <div>
+              <div className="status-title">Reclamos y Casos</div>
+              <div className="status-text">{casosAbiertos.length} tickets activos que requieren atención</div>
+            </div>
+          </div>
+        )}
 
         {/* Tareas pendientes */}
         {tareasPendientes.length > 0 && (
@@ -298,7 +341,8 @@ export default function Dashboard({ refresh, onNavigate }) {
         {/* Sistema al día */}
         {tareasPendientes.length === 0 &&
           vencidos.length === 0 &&
-          proximos.length === 0 && (
+          proximos.length === 0 &&
+          casosAbiertos.length === 0 && (
             <div className="status-card success">
               <div className="status-icon">✅</div>
               <div>

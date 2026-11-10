@@ -10,7 +10,7 @@ import ClienteForm from "./components/ClienteForm";
 import InstrumentoForm from "./components/InstrumentoForm";
 import Modal from "./components/Modal";
 import Login from "./pages/Login";
-import CasoList from "./components/CasosList";
+import MasterList from "./components/MasterList";
 import MantenimientosList from "./components/MantenimientosList";
 import RegistrarMantenimientoModal from "./components/RegistrarMantenimientoModal";
 
@@ -22,6 +22,8 @@ import RepuestosList from "./components/RepuestosList";
 
 import TareasList from "./components/TareasList";
 import TareaForm from "./components/TareaForm";
+
+import CasosList from "./components/CasosList";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -40,6 +42,7 @@ function App() {
   const [servicios, setServicios] = useState([]);
   const [repuestos, setRepuestos] = useState([]);
   const [tareas, setTareas] = useState([]);
+  const [casos, setCasos] = useState([]);
 
   const [showInstrumentoModal, setShowInstrumentoModal] = useState(false);
   const [showClienteModal, setShowClienteModal] = useState(false);
@@ -48,11 +51,9 @@ function App() {
   const [showTareaModal, setShowTareaModal] = useState(false);
 
   const [instrumentoEdit, setInstrumentoEdit] = useState(null);
-  const [clienteEdit, setClienteEdit] = useState(null); // <-- Asegurar estado de cliente edit
+  const [clienteEdit, setClienteEdit] = useState(null);
   const [servicioEdit, setServicioEdit] = useState(null);
   const [tareaEdit, setTareaEdit] = useState(null);
-
-  const [casos, setCasos] = useState([]);
 
   const [mantenimientoFiltro, setMantenimientoFiltro] = useState("todos");
   const [mantenimientoEdit, setMantenimientoEdit] = useState(null);
@@ -80,13 +81,11 @@ function App() {
     setCasos([]);
   };
 
-  
-
-const safeJson = async (res) => {
+  const safeJson = async (res) => {
     if (res.status === 401) {
       localStorage.removeItem("token");
       setAuth(false);
-      window.location.reload(); // Recarga la página para limpiar estados residuales y llevar al login
+      window.location.reload();
       return [];
     }
     const text = await res.text();
@@ -112,7 +111,7 @@ const safeJson = async (res) => {
         fetch(`${API_URL}/servicios-terceros`, { headers }).then(safeJson),
         fetch(`${API_URL}/repuestos`, { headers }).then(safeJson),
         fetch(`${API_URL}/tareas`, { headers }).then(safeJson),
-        fetch(`${API_URL}/casos`, { headers }).then(safeJson),
+        fetch(`${API_URL}/casos`, { headers }).then(safeJson), // <-- Casos añadidos aquí
       ]);
 
       setInstrumentos(ins || []);
@@ -120,7 +119,7 @@ const safeJson = async (res) => {
       setServicios(serv || []);
       setRepuestos(rep || []);
       setTareas(tar || []);
-      setCasos(cas || []);
+      setCasos(cas || []); // <-- Casos guardados en el estado
     } catch (error) {
       console.error("Error al cargar datos:", error);
       showToast("Error al cargar datos", "error");
@@ -156,8 +155,6 @@ const safeJson = async (res) => {
       showToast("Error al actualizar el estado", "error");
     }
   };
-
-
 
   if (!auth) {
     return <Login onLogin={() => setAuth(true)} />;
@@ -302,10 +299,33 @@ const safeJson = async (res) => {
         )}
 
         {view === "casos" && (
-          <CasoList
+          <CasosList
             casos={casos}
             onRefresh={handleRefresh}
+            onDelete={async (id) => {
+              try {
+                const token = localStorage.getItem("token");
+                const res = await fetch(`${API_URL}/casos/${id}`, {
+                  method: "DELETE",
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                });
+
+                if (!res.ok) throw new Error("Error al eliminar el caso");
+
+                handleRefresh();
+                showToast("Caso eliminado correctamente");
+              } catch (error) {
+                console.error("Error al eliminar caso:", error);
+                showToast("Error al eliminar el caso", "error");
+              }
+            }}
           />
+        )}
+
+        {view === "master" && (
+          <MasterList showToast={showToast} />
         )}
 
         {view === "mantenimientos" && (
@@ -349,14 +369,14 @@ const safeJson = async (res) => {
             onClienteCreado={() => {
               handleRefresh();
               showToast("Cliente creado");
-              setShowClienteModal(false); // <--- CIERRA EL MODAL AL CREAR
+              setShowClienteModal(false);
             }}
             onClienteGuardado={() => {
               handleRefresh();
               showToast("Cliente actualizado");
-              setShowClienteModal(false); // <--- CIERRA EL MODAL AL ACTUALIZAR
+              setShowClienteModal(false);
             }}
-            onClose={() => setShowClienteModal(false)} // <--- CIERRA EL MODAL AL CANCELAR
+            onClose={() => setShowClienteModal(false)}
           />
         </Modal>
       )}
